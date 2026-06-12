@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupLightbox(); // 啟用燈箱初始化
 });
 
-// 1. 頂部無縫滾動 Banner
+// 1. 頂部無縫滾動 Banner (已修正：讓影片能自動、靜音、循環播放)
 function initCarousel() {
   const track = document.getElementById('carousel-track');
   if (!track) return;
@@ -22,17 +22,14 @@ function initCarousel() {
   track.innerHTML = carouselItems.map(item => `
     <div class="w-48 h-32 mx-2 flex-shrink-0 overflow-hidden rounded shadow-sm border border-stone-800 bg-stone-900">
       ${item.type === 'video' 
-        ? `<div class="w-full h-full flex flex-col items-center justify-center text-stone-500 gap-1 bg-[#1A2535]">
-            <i class="fa-solid fa-video text-lg"></i>
-            <span class="text-[9px] uppercase tracking-wider text-stone-400">Video</span>
-           </div>`
+        ? `<video src="${item.url}" class="w-full h-full object-cover opacity-75 hover:opacity-100 transition-opacity duration-300" autoplay muted loop playsinline></video>`
         : `<img src="${item.url}" alt="${item.title}" class="w-full h-full object-cover opacity-75 hover:opacity-100 transition-opacity duration-300">`
       }
     </div>
   `).join('');
 }
 
-// 2. 渲染 3x3 照片卡片網格 (修正點擊連結改為點擊觸發 Lightbox)
+// 2. 渲染 3x3 照片卡片網格
 function renderGallery() {
   const grid = document.getElementById('gallery-grid');
   if (!grid) return;
@@ -55,7 +52,6 @@ function renderGallery() {
     
     const displayId = String(item.id).padStart(2, '0');
 
-    // 這裡我們把原本的 href 移除，改成使用 onclick 觸發打開燈箱
     card.innerHTML = `
       <!-- 上方預覽區：點擊原地觸發滿版燈箱 -->
       <div onclick="openLightbox(${item.id})" class="block relative aspect-[4/3] overflow-hidden bg-stone-100 cursor-pointer">
@@ -200,23 +196,18 @@ function setupModal() {
   });
 }
 
-// ==========================================
-// 🚀 新增：滿版精緻相簿燈箱邏輯 (Lightbox)
-// ==========================================
+// 7. 滿版精緻相簿燈箱邏輯 (Lightbox)
 function setupLightbox() {
   const lightbox = document.getElementById('lightbox');
   const closeBtn = document.getElementById('lightbox-close');
 
-  // 點選關閉按鈕或背景時關閉燈箱
   closeBtn.addEventListener('click', closeLightbox);
   lightbox.addEventListener('click', (e) => {
-    // 如果點擊的地方是背景（而不是大圖本身或下方文字），就直接關閉
     if (e.target === lightbox || e.target.id === 'lightbox-content-box') {
       closeLightbox();
     }
   });
 
-  // 鍵盤 ESC 關閉支援
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !lightbox.classList.contains('hidden')) {
       closeLightbox();
@@ -224,7 +215,7 @@ function setupLightbox() {
   });
 }
 
-// 打開燈箱並塞入對應的資料
+// 打開燈箱
 window.openLightbox = function(id) {
   const item = travelData.find(d => d.id === id);
   if (!item) return;
@@ -234,11 +225,9 @@ window.openLightbox = function(id) {
   const titleText = document.getElementById('lightbox-title');
   const categoryText = document.getElementById('lightbox-category');
 
-  // 設定資訊
   titleText.innerText = item.title;
   categoryText.innerText = item.category;
 
-  // 動態判定要置入大圖還是影片
   if (item.type === 'video') {
     contentBox.innerHTML = `
       <video src="${item.url}" class="max-w-full max-h-[75vh] rounded-lg shadow-2xl" controls autoplay loop></video>
@@ -249,9 +238,8 @@ window.openLightbox = function(id) {
     `;
   }
 
-  // 顯示燈箱（使用淡入淡出動畫）
   lightbox.classList.remove('hidden');
-  document.body.classList.add('overflow-hidden-lightbox'); // 防止底層網頁滑動
+  document.body.classList.add('overflow-hidden-lightbox');
   setTimeout(() => {
     lightbox.classList.remove('opacity-0');
   }, 10);
@@ -263,10 +251,10 @@ function closeLightbox() {
   const contentBox = document.getElementById('lightbox-content-box');
 
   lightbox.classList.add('opacity-0');
-  document.body.classList.remove('overflow-hidden-lightbox'); // 恢復網頁滑動
+  document.body.classList.remove('overflow-hidden-lightbox');
   
   setTimeout(() => {
     lightbox.classList.add('hidden');
-    contentBox.innerHTML = ''; // 清空影片或大圖，停止背景播放
+    contentBox.innerHTML = ''; 
   }, 300);
 }
