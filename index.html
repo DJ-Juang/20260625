@@ -48,11 +48,21 @@
     <!-- 主內容容器 -->
     <main class="max-w-6xl mx-auto px-4 py-12">
       
-      <!-- 網頁標題區 -->
+      <!-- 網頁標題區 (已加入左右國旗小圖案) -->
       <header class="text-center mb-16">
         <span class="text-xs uppercase tracking-widest text-[#8C6239] font-semibold block mb-3">— TRAVEL JOURNAL —</span>
-        <h1 class="text-4xl md:text-5xl font-light text-[#1A2535] tracking-wide mb-4">義瑞十日遊</h1>
-        <p class="text-stone-500 font-serif italic">The Grand Tour: Italy & Switzerland</p>
+        
+        <div class="flex items-center justify-center gap-3 md:gap-5 mb-4">
+          <!-- 義大利國旗 -->
+          <img src="https://lh3.googleusercontent.com/d/1Xcns8QA2Kn4PhU9HUOY3-IistCBWW9Qw" alt="義大利國旗" class="w-7 h-5 md:w-9 md:h-6 object-cover rounded shadow-sm border border-stone-200">
+          
+          <h1 class="text-3xl md:text-5xl font-light text-[#1A2535] tracking-wide">義瑞十日遊</h1>
+          
+          <!-- 瑞士國旗 -->
+          <img src="https://lh3.googleusercontent.com/d/1x3UX1rTrtcz7ZrK8vNGPynZBFVzQY7de" alt="瑞士國旗" class="w-7 h-5 md:w-9 md:h-6 object-cover rounded shadow-sm border border-stone-200">
+        </div>
+        
+        <p class="text-stone-500 font-serif italic">The Grand Tour: Italy & Switzerland, 2026.06.</p>
       </header>
 
       <!-- 2. 數據統計看板 -->
@@ -99,7 +109,7 @@
     </div>
   </div>
 
-  <!-- 🚀 新增：現代高級感相簿燈箱 (Lightbox) -->
+  <!-- 🚀 滿版精緻相簿燈箱 (Lightbox) -->
   <div id="lightbox" class="fixed inset-0 bg-stone-950/95 backdrop-blur-md flex flex-col justify-center items-center z-50 hidden opacity-0 transition-opacity duration-300">
     <!-- 關閉按鈕 -->
     <button id="lightbox-close" class="absolute top-6 right-6 text-white hover:text-stone-300 text-2xl p-2 z-50 focus:outline-none transition-colors" aria-label="關閉燈箱">
