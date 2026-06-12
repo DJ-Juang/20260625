@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>義瑞十日遊 | 現代極簡式旅遊雜誌紀錄</title>
+  <!-- 引入 Tailwind CSS 與 Font Awesome 圖示 -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -30,24 +31,31 @@
     .marquee-track:hover {
       animation-play-state: paused;
     }
+    /* 防止燈箱開啟時底層網頁滾動 */
+    .overflow-hidden-lightbox {
+      overflow: hidden !important;
+    }
   </style>
 </head>
 <body class="text-slate-800 antialiased min-h-screen flex flex-col justify-between">
 
   <div>
+    <!-- 1. 頂部輪播 Banner -->
     <div class="relative w-full overflow-hidden bg-[#1A2535] py-4 border-b border-stone-200 shadow-sm">
       <div id="carousel-track" class="marquee-track"></div>
     </div>
 
+    <!-- 主內容容器 -->
     <main class="max-w-6xl mx-auto px-4 py-12">
       
+      <!-- 網頁標題區 -->
       <header class="text-center mb-16">
         <span class="text-xs uppercase tracking-widest text-[#8C6239] font-semibold block mb-3">— TRAVEL JOURNAL —</span>
-        <!--h1 class="text-4xl md:text-5xl font-light text-[#1A2535] tracking-wide mb-4">義瑞十日遊</h1-->
-        <h1 class="text-3xl font-bold text-slate-800 mb-2">義瑞之旅相片館(2026)</h1>
+        <h1 class="text-4xl md:text-5xl font-light text-[#1A2535] tracking-wide mb-4">義瑞十日遊</h1>
         <p class="text-stone-500 font-serif italic">The Grand Tour: Italy & Switzerland</p>
       </header>
 
+      <!-- 2. 數據統計看板 -->
       <section class="bg-white border border-stone-200 rounded-lg p-6 md:p-8 mb-12 shadow-sm flex flex-col md:flex-row justify-between items-center gap-6">
         <div class="flex flex-col md:flex-row gap-6 md:gap-12 text-center md:text-left">
           <div>
@@ -65,13 +73,16 @@
         </button>
       </section>
 
+      <!-- 3. 3x3 照片卡片網格 -->
       <section id="gallery-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16"></section>
 
+      <!-- 4. 分頁按鈕 -->
       <nav id="pagination" class="flex justify-center items-center gap-2 border-t border-stone-200 pt-8"></nav>
 
     </main>
   </div>
 
+  <!-- 5. 自訂二次確認 Modal -->
   <div id="confirm-modal" class="fixed inset-0 bg-stone-900/60 backdrop-blur-sm flex items-center justify-center z-50 hidden opacity-0 transition-opacity duration-300">
     <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4 shadow-xl border border-stone-100 transform scale-95 transition-transform duration-300" id="modal-card">
       <div class="text-center">
@@ -88,6 +99,26 @@
     </div>
   </div>
 
+  <!-- 🚀 新增：現代高級感相簿燈箱 (Lightbox) -->
+  <div id="lightbox" class="fixed inset-0 bg-stone-950/95 backdrop-blur-md flex flex-col justify-center items-center z-50 hidden opacity-0 transition-opacity duration-300">
+    <!-- 關閉按鈕 -->
+    <button id="lightbox-close" class="absolute top-6 right-6 text-white hover:text-stone-300 text-2xl p-2 z-50 focus:outline-none transition-colors" aria-label="關閉燈箱">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    
+    <!-- 內容容器 -->
+    <div class="relative max-w-4xl w-full max-h-[80vh] px-4 flex justify-center items-center select-none" id="lightbox-content-box">
+      <!-- 圖片或影片會由 JavaScript 動態塞入這裡 -->
+    </div>
+    
+    <!-- 燈箱下方資訊列 -->
+    <div class="mt-6 text-center px-4 max-w-xl">
+      <span id="lightbox-category" class="text-xs tracking-widest text-[#8C6239] uppercase font-bold block mb-1">CATEGORY</span>
+      <h4 id="lightbox-title" class="text-white text-lg font-light tracking-wide">景點名稱</h4>
+    </div>
+  </div>
+
+  <!-- 頁尾 -->
   <footer class="text-center py-12 text-xs tracking-widest text-stone-400 uppercase border-t border-stone-200 mt-20">
     © 2026 Memory Lane. All Rights Reserved.
   </footer>
