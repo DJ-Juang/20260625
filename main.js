@@ -1,110 +1,196 @@
-// main.js
-let filteredData = [...rawData];
+const ITEMS_PER_PAGE = 9;
 let currentPage = 1;
-const itemsPerPage = 12;
+let favorites = JSON.parse(localStorage.getItem('travel_favorites')) || [];
 
-function getThumbnail(url) {
-    const idMatch = url.match(/\/d\/(.+?)\//);
-    return idMatch ? `https://lh3.googleusercontent.com/d/${idMatch[1]}` : 'https://via.placeholder.com/400x260?text=No+Preview';
+// 網頁載入完成後初始化
+document.addEventListener("DOMContentLoaded", () => {
+  initCarousel();
+  renderGallery();
+  renderPagination();
+  updateStats();
+  setupModal();
+});
+
+// 1. 頂部無縫滾動 Banner
+function initCarousel() {
+  const track = document.getElementById('carousel-track');
+  if (!track) return;
+
+  // 複製陣列以實現無縫循環滾動
+  const carouselItems = [...travelData, ...travelData, ...travelData];
+  
+  track.innerHTML = carouselItems.map(item => `
+    <div class="w-48 h-32 mx-2 flex-shrink-0 overflow-hidden rounded shadow-sm border border-stone-800 bg-stone-900">
+      ${item.type === 'video' 
+        ? `<div class="w-full h-full flex flex-col items-center justify-center text-stone-500 gap-1 bg-[#1A2535]">
+            <i class="fa-solid fa-video text-lg"></i>
+            <span class="text-[9px] uppercase tracking-wider text-stone-400">Video</span>
+           </div>`
+        : `<img src="${item.url}" alt="${item.title}" class="w-full h-full object-cover opacity-75 hover:opacity-100 transition-opacity duration-300">`
+      }
+    </div>
+  `).join('');
 }
 
-function initRegionFilter() {
-    const regionSelect = document.getElementById('regionFilter');
-    const regions = [...new Set(rawData.map(d => d.region))].sort();
-    regions.forEach(r => regionSelect.add(new Option(r, r)));
-}
-
-function updateCountryOptions(selectedRegion) {
-    const countrySelect = document.getElementById('countryFilter');
-    countrySelect.innerHTML = '<option value="all">所有地點</option>';
-    const availableCountries = rawData
-        .filter(item => selectedRegion === 'all' || item.region === selectedRegion)
-        .map(item => item.country);
-    [...new Set(availableCountries)].sort().forEach(c => countrySelect.add(new Option(c, c)));
-}
-
+// 2. 渲染 3x3 照片卡片網格 (修正後版本：左上 #ID，右上 Category)
 function renderGallery() {
-    const gallery = document.getElementById('gallery');
-    const stats = document.getElementById('stats');
-    const emptyState = document.getElementById('emptyState');
+  const grid = document.getElementById('gallery-grid');
+  if (!grid) return;
+
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const pageData = travelData.slice(startIndex, endIndex);
+
+  grid.innerHTML = '';
+
+  if (pageData.length === 0) {
+    grid.innerHTML = `<p class="col-span-full text-center text-stone-400 py-12">目前沒有任何紀錄資料。</p>`;
+    return;
+  }
+
+  pageData.forEach(item => {
+    const isFav = favorites.includes(item.id);
+    const card = document.createElement('div');
+    card.className = "bg-white border border-stone-200 rounded overflow-hidden shadow-sm hover:shadow-md transition-all duration-500 transform hover:-translate-y-1 group flex flex-col justify-between";
     
-    gallery.innerHTML = '';
-    stats.textContent = `找到 ${filteredData.length} 筆資料 (第 ${currentPage} 頁)`;
+    const displayId = String(item.id).padStart(2, '0');
 
-    if (filteredData.length === 0) {
-        emptyState.classList.remove('hidden');
-        document.getElementById('pagination').innerHTML = '';
-        return;
-    }
-    emptyState.classList.add('hidden');
-
-    const start = (currentPage - 1) * itemsPerPage;
-    const pageItems = filteredData.slice(start, start + itemsPerPage);
-
-    pageItems.forEach(item => {
-        const card = document.createElement('div');
-        card.className = 'glass-card rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all flex flex-col';
-        card.innerHTML = `
-            <div class="img-container">
-                <img src="${getThumbnail(item.url)}" alt="${item.country}" onerror="this.src='https://via.placeholder.com/400x260?text=Image+Not+Found'">
-                <div class="absolute top-3 left-3 bg-white/90 backdrop-blur px-2 py-1 rounded text-[10px] font-bold text-blue-600 shadow-sm">${item.year} (#${item.id})</div>
+    card.innerHTML = `
+      <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="block relative aspect-[4/3] overflow-hidden bg-stone-100">
+        ${item.type === 'video' 
+          ? `
+            <div class="absolute inset-0 flex items-center justify-center bg-stone-900 bg-opacity-40 z-10 text-white group-hover:scale-110 transition-transform duration-500">
+              <div class="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center shadow-lg">
+                <i class="fa-solid fa-play text-lg translate-x-0.5"></i>
+              </div>
             </div>
-            <div class="p-5 flex-grow">
-                <div class="flex justify-between items-center mb-1">
-                    <h3 class="font-bold text-slate-800 text-lg">${item.country} ${item.memo1}</h3>
-                </div>
-                <p class="text-slate-500 text-sm mb-4 italic">${item.region}</p>
-                <a href="${item.url}" target="_blank" class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl transition-all text-sm">打開相簿</a>
-            </div>
-        `;
-        gallery.appendChild(card);
-    });
-    renderPagination();
-}
-
-function renderPagination() {
-    const container = document.getElementById('pagination');
-    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-    container.innerHTML = '';
-    if (totalPages <= 1) return;
-
-    const createBtn = (label, page, active = false, disabled = false) => {
-        const btn = document.createElement('button');
-        btn.textContent = label;
-        btn.disabled = disabled;
-        btn.className = `min-w-[40px] h-10 px-3 rounded-lg font-medium ${active ? 'bg-blue-600 text-white' : 'bg-white text-slate-600 border border-slate-100'} ${disabled ? 'opacity-30' : 'hover:bg-blue-50'}`;
-        btn.onclick = () => { currentPage = page; renderGallery(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
-        return btn;
-    };
-
-    container.appendChild(createBtn('«', 1, false, currentPage === 1));
-    for (let i = 1; i <= totalPages; i++) {
-        if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
-            container.appendChild(createBtn(i, i, i === currentPage));
+            <video src="${item.url}" class="w-full h-full object-cover" muted loop></video>
+            `
+          : `<img src="${item.url}" alt="${item.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out">`
         }
+        <span class="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-[10px] tracking-widest text-[#8C6239] px-2.5 py-1 uppercase rounded-sm font-bold z-10 shadow-sm border border-stone-100 font-serif">
+          #${displayId}
+        </span>
+        <span class="absolute top-3 right-3 bg-[#1A2535]/90 backdrop-blur-sm text-[10px] tracking-widest text-white px-2.5 py-1 uppercase rounded-sm font-semibold z-10 shadow-sm border border-white/10">
+          ${item.category}
+        </span>
+      </a>
+      
+      <div class="p-5 flex justify-between items-center bg-white border-t border-stone-50">
+        <h3 class="text-sm font-light text-stone-800 tracking-wide truncate pr-4" title="${item.title}">
+          ${item.title}
+        </h3>
+        <button onclick="toggleFavorite(${item.id})" class="text-stone-300 hover:text-red-400 transition-colors duration-300 p-1 focus:outline-none">
+          <i class="${isFav ? 'fa-solid fa-heart text-red-500' : 'fa-regular fa-heart'} text-lg"></i>
+        </button>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// 3. 分頁控制
+function renderPagination() {
+  const paginationNav = document.getElementById('pagination');
+  if (!paginationNav) return;
+
+  const totalPages = Math.ceil(travelData.length / ITEMS_PER_PAGE);
+  paginationNav.innerHTML = '';
+
+  if (totalPages <= 1) return;
+
+  const createBtn = (label, targetPage, disabled = false, active = false) => {
+    const btn = document.createElement('button');
+    btn.innerHTML = label;
+    btn.disabled = disabled;
+    
+    if (active) {
+      btn.className = "w-8 h-8 flex items-center justify-center text-xs bg-[#1A2535] text-white rounded-full font-medium transition-all duration-300";
+    } else if (disabled) {
+      btn.className = "w-8 h-8 flex items-center justify-center text-xs text-stone-300 cursor-not-allowed";
+    } else {
+      btn.className = "w-8 h-8 flex items-center justify-center text-xs text-stone-600 hover:bg-stone-100 rounded-full transition-all duration-300";
     }
-    container.appendChild(createBtn('»', totalPages, false, currentPage === totalPages));
+
+    btn.addEventListener('click', () => {
+      currentPage = targetPage;
+      renderGallery();
+      renderPagination();
+      window.scrollTo({ top: 350, behavior: 'smooth' });
+    });
+
+    return btn;
+  };
+
+  paginationNav.appendChild(createBtn('<i class="fa-solid fa-angles-left text-[9px]"></i>', 1, currentPage === 1));
+  paginationNav.appendChild(createBtn('<i class="fa-solid fa-angle-left text-[9px]"></i>', currentPage - 1, currentPage === 1));
+
+  for (let i = 1; i <= totalPages; i++) {
+    paginationNav.appendChild(createBtn(i, i, false, currentPage === i));
+  }
+
+  paginationNav.appendChild(createBtn('<i class="fa-solid fa-angle-right text-[9px]"></i>', currentPage + 1, currentPage === totalPages));
+  paginationNav.appendChild(createBtn('<i class="fa-solid fa-angles-right text-[9px]"></i>', totalPages, currentPage === totalPages));
 }
 
-function handleFilter() {
-    const r = document.getElementById('regionFilter').value;
-    const c = document.getElementById('countryFilter').value;
-    filteredData = rawData.filter(item => (r === 'all' || item.region === r) && (c === 'all' || item.country === c));
-    currentPage = 1;
-    renderGallery();
+// 4. 數據統計更新
+function updateStats() {
+  const totalStat = document.getElementById('stat-total');
+  const favStat = document.getElementById('stat-favorites');
+  
+  if (totalStat) totalStat.innerHTML = `${travelData.length} <span class="text-sm text-stone-400">個回憶</span>`;
+  if (favStat) favStat.innerHTML = `${favorites.length} <span class="text-sm text-stone-400">個最愛</span>`;
 }
 
-window.onload = () => {
-    initRegionFilter();
-    document.getElementById('regionFilter').onchange = (e) => { updateCountryOptions(e.target.value); handleFilter(); };
-    document.getElementById('countryFilter').onchange = handleFilter;
-    document.getElementById('resetBtn').onclick = () => {
-        document.getElementById('regionFilter').value = 'all';
-        updateCountryOptions('all');
-        document.getElementById('countryFilter').value = 'all';
-        filteredData = [...rawData];
-        currentPage = 1;
-        renderGallery();
-    };
-    renderGallery();
+// 5. 切換最愛狀態
+window.toggleFavorite = function(id) {
+  const index = favorites.indexOf(id);
+  if (index === -1) {
+    favorites.push(id);
+  } else {
+    favorites.splice(index, 1);
+  }
+  
+  localStorage.setItem('travel_favorites', JSON.stringify(favorites));
+  renderGallery();
+  updateStats();
 };
+
+// 6. 高級自訂二次確認彈出視窗 (Modal)
+function setupModal() {
+  const modal = document.getElementById('confirm-modal');
+  const card = document.getElementById('modal-card');
+  const btnReset = document.getElementById('btn-reset');
+  const btnCancel = document.getElementById('modal-cancel');
+  const btnConfirm = document.getElementById('modal-confirm');
+
+  const openModal = () => {
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+      modal.classList.remove('opacity-0');
+      card.classList.remove('scale-95');
+    }, 10);
+  };
+
+  const closeModal = () => {
+    modal.classList.add('opacity-0');
+    card.classList.add('scale-95');
+    setTimeout(() => {
+      modal.classList.add('hidden');
+    }, 300);
+  };
+
+  btnReset.addEventListener('click', openModal);
+  btnCancel.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  btnConfirm.addEventListener('click', () => {
+    favorites = [];
+    localStorage.removeItem('travel_favorites');
+    renderGallery();
+    updateStats();
+    closeModal();
+  });
+}
