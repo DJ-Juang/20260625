@@ -1,55 +1,98 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>義瑞之旅照片導覽</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
-        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f8fafc; }
-        .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(226, 232, 240, 0.8); }
-        .img-container { position: relative; width: 100%; padding-top: 65%; overflow: hidden; background: #e2e8f0; }
-        .img-container img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
-        .glass-card:hover img { transform: scale(1.05); }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>義瑞十日遊 | 現代極簡式旅遊雜誌紀錄</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --color-roma-blue: #1A2535;
+      --color-swiss-blue: #E8F1F5;
+      --color-wood: #8C6239;
+      --color-bg: #F9F8F6;
+    }
+    body {
+      background-color: var(--color-bg);
+      font-family: 'PingFang TC', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+    /* 輪播無限滾動特效 */
+    @keyframes marquee {
+      0% { transform: translateX(0%); }
+      100% { transform: translateX(-50%); }
+    }
+    .marquee-track {
+      display: flex;
+      width: max-content;
+      animation: marquee 35s linear infinite;
+    }
+    .marquee-track:hover {
+      animation-play-state: paused;
+    }
+  </style>
 </head>
-<body class="p-4 md:p-8">
-    <div class="max-w-6xl mx-auto">
-        <!-- 標題部分 -->
-        <header class="mb-8 flex items-center justify-center gap-6">
-            <img src="https://lh3.googleusercontent.com/d/1Xcns8QA2Kn4PhU9HUOY3-IistCBWW9Qw" alt="Left Icon" class="w-8 h-8 rounded-full shadow-sm">
-            <div class="text-center">
-                <h1 class="text-3xl font-bold text-slate-800 mb-2">義瑞之旅相片館</h1>
-            </div>
-            <img src="https://lh3.googleusercontent.com/d/1x3UX1rTrtcz7ZrK8vNGPynZBFVzQY7de" alt="Right Icon" class="w-8 h-8 rounded-full shadow-sm">
-        </header>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col justify-between">
 
-        <!-- 篩選器 -->
-        <div class="glass-card rounded-2xl p-6 mb-8 shadow-sm flex flex-wrap gap-4 items-end">
-            <div class="flex-1 min-w-[150px]">
-                <label class="block text-sm font-medium text-slate-600 mb-2">地區</label>
-                <select id="regionFilter" class="w-full bg-white border border-slate-200 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500 transition-all">
-                    <option value="all">所有地區</option>
-                </select>
-            </div>
-            <div class="flex-1 min-w-[150px]">
-                <label class="block text-sm font-medium text-slate-600 mb-2">國家/城市</label>
-                <select id="countryFilter" class="w-full bg-white border border-slate-200 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500 transition-all">
-                    <option value="all">所有地點</option>
-                </select>
-            </div>
-            <button id="resetBtn" class="px-6 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg font-medium transition-colors">重設</button>
-        </div>
-
-        <div id="stats" class="mb-4 text-sm text-slate-500 font-medium"></div>
-        <div id="gallery" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
-        <div id="pagination" class="mt-12 flex justify-center items-center gap-2"></div>
-        <div id="emptyState" class="hidden py-20 text-center"><p class="text-slate-400 text-lg">找不到符合條件的照片</p></div>
+  <div>
+    <div class="relative w-full overflow-hidden bg-[#1A2535] py-4 border-b border-stone-200 shadow-sm">
+      <div id="carousel-track" class="marquee-track"></div>
     </div>
 
-    <!-- 引用資料與邏輯 -->
-    <script src="italy-data.js"></script>
-    <script src="main.js"></script>
+    <main class="max-w-6xl mx-auto px-4 py-12">
+      
+      <header class="text-center mb-16">
+        <span class="text-xs uppercase tracking-widest text-[#8C6239] font-semibold block mb-3">— TRAVEL JOURNAL —</span>
+        <!--h1 class="text-4xl md:text-5xl font-light text-[#1A2535] tracking-wide mb-4">義瑞十日遊</h1-->
+        <h1 class="text-3xl font-bold text-slate-800 mb-2">義瑞之旅相片館(2026)</h1>
+        <p class="text-stone-500 font-serif italic">The Grand Tour: Italy & Switzerland</p>
+      </header>
+
+      <section class="bg-white border border-stone-200 rounded-lg p-6 md:p-8 mb-12 shadow-sm flex flex-col md:flex-row justify-between items-center gap-6">
+        <div class="flex flex-col md:flex-row gap-6 md:gap-12 text-center md:text-left">
+          <div>
+            <span class="text-xs text-stone-400 uppercase tracking-wider block mb-1">已紀錄的足跡</span>
+            <span id="stat-total" class="text-2xl font-light text-[#1A2535]">0 <span class="text-sm text-stone-500">個回憶</span></span>
+          </div>
+          <div class="border-r border-stone-200 hidden md:block"></div>
+          <div>
+            <span class="text-xs text-stone-400 uppercase tracking-wider block mb-1">我的私房收藏</span>
+            <span id="stat-favorites" class="text-2xl font-light text-[#8C6239]">0 <span class="text-sm text-stone-500">個最愛</span></span>
+          </div>
+        </div>
+        <button id="btn-reset" class="px-5 py-2 border border-stone-300 text-xs tracking-wider text-stone-600 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all duration-300 uppercase rounded">
+          <i class="fa-regular fa-trash-can mr-2"></i>重設我的最愛
+        </button>
+      </section>
+
+      <section id="gallery-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16"></section>
+
+      <nav id="pagination" class="flex justify-center items-center gap-2 border-t border-stone-200 pt-8"></nav>
+
+    </main>
+  </div>
+
+  <div id="confirm-modal" class="fixed inset-0 bg-stone-900/60 backdrop-blur-sm flex items-center justify-center z-50 hidden opacity-0 transition-opacity duration-300">
+    <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4 shadow-xl border border-stone-100 transform scale-95 transition-transform duration-300" id="modal-card">
+      <div class="text-center">
+        <div class="w-12 h-12 rounded-full bg-red-50 text-red-500 flex items-center justify-center mx-auto mb-4">
+          <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+        </div>
+        <h3 class="text-lg font-medium text-stone-900 mb-2">確定要重設收藏嗎？</h3>
+        <p class="text-sm text-stone-500 mb-6">這將會清除您在瀏覽器中所保存的所有「我的最愛」景點，且此操作無法復原。</p>
+        <div class="flex gap-4 justify-center">
+          <button id="modal-cancel" class="px-5 py-2.5 border border-stone-200 text-sm text-stone-600 rounded hover:bg-stone-50 transition-colors duration-200">取消</button>
+          <button id="modal-confirm" class="px-5 py-2.5 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors duration-200 shadow-sm">確認清除</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="text-center py-12 text-xs tracking-widest text-stone-400 uppercase border-t border-stone-200 mt-20">
+    © 2026 Memory Lane. All Rights Reserved.
+  </footer>
+
+  <script src="italy-data.js"></script>
+  <script src="main.js"></script>
 </body>
 </html>
