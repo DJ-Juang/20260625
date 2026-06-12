@@ -1,10 +1,12 @@
 const ITEMS_PER_PAGE = 9;
 let currentPage = 1;
+let filterMode = 'all'; // 'all'（全部）或 'favorites'（僅收藏）
 let favorites = JSON.parse(localStorage.getItem('travel_favorites')) || [];
 
 // 網頁載入完成後初始化
 document.addEventListener("DOMContentLoaded", () => {
   initCarousel();
+  setupFilterTabs(); // 初始化篩選標籤互動
   renderGallery();
   renderPagination();
   updateStats();
@@ -12,7 +14,14 @@ document.addEventListener("DOMContentLoaded", () => {
   setupLightbox(); // 啟用燈箱初始化
 });
 
-// 1. 頂部無縫滾動 Banner (已修正：讓影片能自動、靜音、循環播放)
+// 取得當前篩選模式下的資料列表
+function getFilteredData() {
+  return filterMode === 'all' 
+    ? travelData 
+    : travelData.filter(item => favorites.includes(item.id));
+}
+
+// 1. 頂部無縫滾動 Banner
 function initCarousel() {
   const track = document.getElementById('carousel-track');
   if (!track) return;
@@ -29,19 +38,71 @@ function initCarousel() {
   `).join('');
 }
 
-// 2. 渲染 3x3 照片卡片網格
+// 初始化篩選標籤的點擊事件與手勢樣式
+function setupFilterTabs() {
+  const totalBtn = document.getElementById('stat-total')?.parentElement;
+  const favBtn = document.getElementById('stat-favorites')?.parentElement;
+
+  if (totalBtn && favBtn) {
+    // 注入基礎 RWD 手勢與雜誌感轉場動畫樣式
+    totalBtn.className = "flex flex-col cursor-pointer transition-all duration-300 p-4 rounded-lg border border-transparent hover:bg-stone-50 select-none w-full md:w-auto";
+    favBtn.className = "flex flex-col cursor-pointer transition-all duration-300 p-4 rounded-lg border border-transparent hover:bg-stone-50 select-none w-full md:w-auto";
+
+    // 點擊「已紀錄的足跡」還原呈現所有照片
+    totalBtn.addEventListener('click', () => {
+      if (filterMode !== 'all') {
+        filterMode = 'all';
+        currentPage = 1;
+        renderGallery();
+        renderPagination();
+        updateStats();
+      }
+    });
+
+    // 點擊「我的私房收藏」只呈現最愛照片
+    favBtn.addEventListener('click', () => {
+      if (filterMode !== 'favorites') {
+        filterMode = 'favorites';
+        currentPage = 1;
+        renderGallery();
+        renderPagination();
+        updateStats();
+      }
+    });
+  }
+}
+
+// 2. 渲染 3x3 照片卡片網格 (支援動態篩選模式)
 function renderGallery() {
   const grid = document.getElementById('gallery-grid');
   if (!grid) return;
 
+  const activeData = getFilteredData();
+  
+  // 安全限制：若因取消收藏導致當前頁數超出最大頁數，自動修正回最後一頁
+  const totalPages = Math.ceil(activeData.length / ITEMS_PER_PAGE) || 1;
+  if (currentPage > totalPages) {
+    currentPage = totalPages;
+  }
+
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
-  const pageData = travelData.slice(startIndex, endIndex);
+  const pageData = activeData.slice(startIndex, endIndex);
 
   grid.innerHTML = '';
 
+  // 處理無資料時的雜誌風提示（尤其是當收藏清單空空如也時）
   if (pageData.length === 0) {
-    grid.innerHTML = `<p class="col-span-full text-center text-stone-400 py-12">目前沒有任何紀錄資料。</p>`;
+    if (filterMode === 'favorites') {
+      grid.innerHTML = `
+        <div class="col-span-full text-center py-16 px-4 bg-stone-50 border border-dashed border-stone-200 rounded-lg">
+          <i class="fa-regular fa-heart text-[#8C6239] opacity-40 text-4xl mb-4 block"></i>
+          <p class="text-stone-600 font-light mb-1">您的「我的最愛」中目前空無一物</p>
+          <p class="text-xs text-stone-400">點擊卡片右下角的愛心，就能將您心動的義瑞回憶珍藏在此！</p>
+        </div>`;
+    } else {
+      grid.innerHTML = `<p class="col-span-full text-center text-stone-400 py-12">目前沒有任何紀錄資料。</p>`;
+    }
     return;
   }
 
@@ -90,12 +151,13 @@ function renderGallery() {
   });
 }
 
-// 3. 分頁控制
+// 3. 分頁控制 (依據目前篩選後的資料長度動態調整)
 function renderPagination() {
   const paginationNav = document.getElementById('pagination');
   if (!paginationNav) return;
 
-  const totalPages = Math.ceil(travelData.length / ITEMS_PER_PAGE);
+  const activeData = getFilteredData();
+  const totalPages = Math.ceil(activeData.length / ITEMS_PER_PAGE);
   paginationNav.innerHTML = '';
 
   if (totalPages <= 1) return;
@@ -134,16 +196,40 @@ function renderPagination() {
   paginationNav.appendChild(createBtn('<i class="fa-solid fa-angles-right text-[9px]"></i>', totalPages, currentPage === totalPages));
 }
 
-// 4. 數據統計更新
+// 4. 數據統計與「頁籤視覺高亮狀態」同步更新
 function updateStats() {
   const totalStat = document.getElementById('stat-total');
   const favStat = document.getElementById('stat-favorites');
   
   if (totalStat) totalStat.innerHTML = `${travelData.length} <span class="text-sm text-stone-400">個回憶</span>`;
   if (favStat) favStat.innerHTML = `${favorites.length} <span class="text-sm text-stone-400">個最愛</span>`;
+
+  // 取得父容器進行視覺樣式切換
+  const totalBtn = totalStat?.parentElement;
+  const favBtn = favStat?.parentElement;
+
+  if (totalBtn && favBtn) {
+    if (filterMode === 'all') {
+      // 高亮「已紀錄的足跡」
+      totalBtn.classList.add('border-stone-300', 'bg-white', 'shadow-sm');
+      totalBtn.classList.remove('border-transparent');
+      
+      // 暗化「我的私房收藏」
+      favBtn.classList.remove('border-stone-300', 'bg-white', 'shadow-sm');
+      favBtn.classList.add('border-transparent');
+    } else {
+      // 高亮「我的私房收藏」
+      favBtn.classList.add('border-stone-300', 'bg-white', 'shadow-sm');
+      favBtn.classList.remove('border-transparent');
+      
+      // 暗化「已紀錄的足跡」
+      totalBtn.classList.remove('border-stone-300', 'bg-white', 'shadow-sm');
+      totalBtn.classList.add('border-transparent');
+    }
+  }
 }
 
-// 5. 切換最愛狀態
+// 5. 切換最愛狀態 (支援在我的最愛頁面取消收藏時立刻移除)
 window.toggleFavorite = function(id) {
   const index = favorites.indexOf(id);
   if (index === -1) {
@@ -153,7 +239,10 @@ window.toggleFavorite = function(id) {
   }
   
   localStorage.setItem('travel_favorites', JSON.stringify(favorites));
+  
+  // 重新渲染當前視窗，並保持在合理的分頁範圍內
   renderGallery();
+  renderPagination();
   updateStats();
 };
 
@@ -190,7 +279,10 @@ function setupModal() {
   btnConfirm.addEventListener('click', () => {
     favorites = [];
     localStorage.removeItem('travel_favorites');
+    filterMode = 'all'; // 重設時自動切換回呈現所有照片
+    currentPage = 1;
     renderGallery();
+    renderPagination();
     updateStats();
     closeModal();
   });
