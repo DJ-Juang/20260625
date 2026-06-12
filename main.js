@@ -9,6 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
   renderPagination();
   updateStats();
   setupModal();
+  setupLightbox(); // 啟用燈箱初始化
 });
 
 // 1. 頂部無縫滾動 Banner
@@ -16,7 +17,6 @@ function initCarousel() {
   const track = document.getElementById('carousel-track');
   if (!track) return;
 
-  // 複製陣列以實現無縫循環滾動
   const carouselItems = [...travelData, ...travelData, ...travelData];
   
   track.innerHTML = carouselItems.map(item => `
@@ -32,7 +32,7 @@ function initCarousel() {
   `).join('');
 }
 
-// 2. 渲染 3x3 照片卡片網格 (修正後版本：左上 #ID，右上 Category)
+// 2. 渲染 3x3 照片卡片網格 (修正點擊連結改為點擊觸發 Lightbox)
 function renderGallery() {
   const grid = document.getElementById('gallery-grid');
   if (!grid) return;
@@ -55,8 +55,10 @@ function renderGallery() {
     
     const displayId = String(item.id).padStart(2, '0');
 
+    // 這裡我們把原本的 href 移除，改成使用 onclick 觸發打開燈箱
     card.innerHTML = `
-      <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="block relative aspect-[4/3] overflow-hidden bg-stone-100">
+      <!-- 上方預覽區：點擊原地觸發滿版燈箱 -->
+      <div onclick="openLightbox(${item.id})" class="block relative aspect-[4/3] overflow-hidden bg-stone-100 cursor-pointer">
         ${item.type === 'video' 
           ? `
             <div class="absolute inset-0 flex items-center justify-center bg-stone-900 bg-opacity-40 z-10 text-white group-hover:scale-110 transition-transform duration-500">
@@ -68,14 +70,17 @@ function renderGallery() {
             `
           : `<img src="${item.url}" alt="${item.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out">`
         }
+        <!-- 左上方：#ID 編號 -->
         <span class="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-[10px] tracking-widest text-[#8C6239] px-2.5 py-1 uppercase rounded-sm font-bold z-10 shadow-sm border border-stone-100 font-serif">
           #${displayId}
         </span>
+        <!-- 右上方：國家/景點分類 -->
         <span class="absolute top-3 right-3 bg-[#1A2535]/90 backdrop-blur-sm text-[10px] tracking-widest text-white px-2.5 py-1 uppercase rounded-sm font-semibold z-10 shadow-sm border border-white/10">
           ${item.category}
         </span>
-      </a>
+      </div>
       
+      <!-- 下方文字與收藏區 -->
       <div class="p-5 flex justify-between items-center bg-white border-t border-stone-50">
         <h3 class="text-sm font-light text-stone-800 tracking-wide truncate pr-4" title="${item.title}">
           ${item.title}
@@ -193,4 +198,75 @@ function setupModal() {
     updateStats();
     closeModal();
   });
+}
+
+// ==========================================
+// 🚀 新增：滿版精緻相簿燈箱邏輯 (Lightbox)
+// ==========================================
+function setupLightbox() {
+  const lightbox = document.getElementById('lightbox');
+  const closeBtn = document.getElementById('lightbox-close');
+
+  // 點選關閉按鈕或背景時關閉燈箱
+  closeBtn.addEventListener('click', closeLightbox);
+  lightbox.addEventListener('click', (e) => {
+    // 如果點擊的地方是背景（而不是大圖本身或下方文字），就直接關閉
+    if (e.target === lightbox || e.target.id === 'lightbox-content-box') {
+      closeLightbox();
+    }
+  });
+
+  // 鍵盤 ESC 關閉支援
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !lightbox.classList.contains('hidden')) {
+      closeLightbox();
+    }
+  });
+}
+
+// 打開燈箱並塞入對應的資料
+window.openLightbox = function(id) {
+  const item = travelData.find(d => d.id === id);
+  if (!item) return;
+
+  const lightbox = document.getElementById('lightbox');
+  const contentBox = document.getElementById('lightbox-content-box');
+  const titleText = document.getElementById('lightbox-title');
+  const categoryText = document.getElementById('lightbox-category');
+
+  // 設定資訊
+  titleText.innerText = item.title;
+  categoryText.innerText = item.category;
+
+  // 動態判定要置入大圖還是影片
+  if (item.type === 'video') {
+    contentBox.innerHTML = `
+      <video src="${item.url}" class="max-w-full max-h-[75vh] rounded-lg shadow-2xl" controls autoplay loop></video>
+    `;
+  } else {
+    contentBox.innerHTML = `
+      <img src="${item.url}" alt="${item.title}" class="max-w-full max-h-[75vh] object-contain rounded-lg shadow-2xl">
+    `;
+  }
+
+  // 顯示燈箱（使用淡入淡出動畫）
+  lightbox.classList.remove('hidden');
+  document.body.classList.add('overflow-hidden-lightbox'); // 防止底層網頁滑動
+  setTimeout(() => {
+    lightbox.classList.remove('opacity-0');
+  }, 10);
+};
+
+// 關閉燈箱
+function closeLightbox() {
+  const lightbox = document.getElementById('lightbox');
+  const contentBox = document.getElementById('lightbox-content-box');
+
+  lightbox.classList.add('opacity-0');
+  document.body.classList.remove('overflow-hidden-lightbox'); // 恢復網頁滑動
+  
+  setTimeout(() => {
+    lightbox.classList.add('hidden');
+    contentBox.innerHTML = ''; // 清空影片或大圖，停止背景播放
+  }, 300);
 }
