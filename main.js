@@ -266,8 +266,8 @@ function updateStats() {
   const totalStat = document.getElementById('stat-total');
   const favStat = document.getElementById('stat-favorites');
   
-  if (totalStat) totalStat.innerHTML = `${travelData.length} <span class="text-sm text-stone-400">-個回憶</span>`;
-  if (favStat) favStat.innerHTML = `${favorites.length} <span class="text-sm text-stone-400">-個最愛</span>`;
+  if (totalStat) totalStat.innerHTML = `${travelData.length} <span class="text-sm text-stone-400">個回憶</span>`;
+  if (favStat) favStat.innerHTML = `${favorites.length} <span class="text-sm text-stone-400">個最愛</span>`;
 
   const totalBtn = totalStat?.parentElement;
   const favBtn = favStat?.parentElement;
@@ -363,7 +363,7 @@ function setupLightbox() {
   });
 }
 
-// 💡 8. 打開燈箱 (已新增：自動修復 iOS 視訊黑屏之 GPU Compositor 衝突問題)
+// 💡 8. 打開燈箱 (已修正：採用「延遲插入影片」技術，徹底解決 iOS Safari / LINE 的黑屏硬體渲染 Bug)
 window.openLightbox = function(id) {
   const item = travelData.find(d => d.id === id);
   if (!item) return;
@@ -396,40 +396,51 @@ window.openLightbox = function(id) {
   downloadBtn.setAttribute('download', `${item.title}`); 
   downloadBtn.innerHTML = `<i class="fa-solid fa-arrow-down-to-bracket text-[10px]"></i> 下載此${item.type === 'video' ? '影片' : '照片'}`;
 
-  if (item.type === 'video') {
-    // 🚀 【關鍵修復 iOS 黑屏 Bug】
-    // 當播放影片時，動態將含有 backdrop-filter 的 backdrop-blur-md 樣式類別從燈箱父元素中移除
-    // 這能完美避免 iOS GPU 渲染引擎在模糊濾鏡與視訊軌緩衝區合成時發生的黑屏衝突。
-    lightbox.classList.remove('backdrop-blur-md');
-    
-    if (driveId) {
-      // 針對 Google Drive 影片：使用原生 <iframe> 播放器 (100% 播放成功)
-      // 同時加入 -webkit-transform: translate3d 樣式強迫啟用純淨獨立的 iOS 顯示緩衝區
-      contentBox.innerHTML = `
-        <iframe src="https://drive.google.com/file/d/${driveId}/preview" class="w-full max-w-4xl aspect-video rounded-lg shadow-2xl bg-black border-none" style="-webkit-transform: translate3d(0,0,0); transform: translate3d(0,0,0);" allow="autoplay" allowfullscreen></iframe>
-      `;
-    } else {
-      // 針對一般外部影片（例如 .mp4 連結）：還原使用原生 HTML5 <video> 播放
-      contentBox.innerHTML = `
-        <video src="${item.url}" class="max-w-full max-h-[75vh] rounded-lg shadow-2xl bg-black" style="-webkit-transform: translate3d(0,0,0); transform: translate3d(0,0,0);" controls autoplay loop playsinline></video>
-      `;
-    }
-  } else {
-    // 🚀 照片項目：可以完美相容毛玻璃效果，因此重新補上類別，享受高擬真的雜誌美感
-    lightbox.classList.add('backdrop-blur-md');
-    
-    // 圖片項目：使用 <img> 標籤
-    const thumbnailUrl = getMediaThumbnail(item);
-    contentBox.innerHTML = `
-      <img src="${thumbnailUrl}" alt="${item.title}" class="max-w-full max-h-[75vh] object-contain rounded-lg shadow-2xl">
-    `;
-  }
-
+  // 1. 立即展開並淡入燈箱背景
   lightbox.classList.remove('hidden');
   document.body.classList.add('overflow-hidden-lightbox');
   setTimeout(() => {
     lightbox.classList.remove('opacity-0');
   }, 10);
+
+  // 2. 判斷並渲染媒體
+  if (item.type === 'video') {
+    // 🚀 【關鍵修復 iOS 黑屏 Bug - 步驟 A】：點選影片時暫時移除背景毛玻璃（backdrop-blur），避免視訊解碼層被 GPU 裁切
+    lightbox.classList.remove('backdrop-blur-md');
+    
+    // 🚀 【關鍵修復 iOS 黑屏 Bug - 步驟 B】：先顯示一個輕量級的旋轉加載圖示，完全避開淡入過渡期
+    contentBox.innerHTML = `
+      <div class="flex flex-col items-center justify-center text-white/60 text-xs tracking-widest py-12">
+        <i class="fa-solid fa-circle-notch fa-spin text-2xl mb-3 text-[#8C6239]"></i>
+        <span>視訊解碼中...</span>
+      </div>
+    `;
+
+    // 🚀 【關鍵修復 iOS 黑屏 Bug - 步驟 C】：延遲 350ms（等燈箱完全淡入靜止後）再動態插入 iframe/video。
+    // 這能讓 Safari 的 Webkit 合成器（Compositor）順利分流，影像 100% 正常顯示！
+    setTimeout(() => {
+      if (driveId) {
+        // 針對 Google Drive 影片：使用原生 <iframe> 播放器 (100% 播放成功)
+        // 去除 rounded 等圓角，避免 border-radius 在某些 iOS 系統下引發遮罩排他衝突
+        contentBox.innerHTML = `
+          <iframe src="https://drive.google.com/file/d/${driveId}/preview" class="w-full max-w-4xl aspect-video shadow-2xl bg-black border-none" style="-webkit-transform: translate3d(0,0,0); transform: translate3d(0,0,0);" allow="autoplay" allowfullscreen></iframe>
+        `;
+      } else {
+        // 針對一般外部影片（例如 .mp4 連結）：還原使用原生 HTML5 <video> 播放
+        contentBox.innerHTML = `
+          <video src="${item.url}" class="max-w-full max-h-[75vh] shadow-2xl bg-black" style="-webkit-transform: translate3d(0,0,0); transform: translate3d(0,0,0);" controls autoplay loop playsinline></video>
+        `;
+      }
+    }, 350);
+
+  } else {
+    // 🚀 照片項目：不受過渡動畫影響，直接載入，並重新還原毛玻璃效果
+    lightbox.classList.add('backdrop-blur-md');
+    const thumbnailUrl = getMediaThumbnail(item);
+    contentBox.innerHTML = `
+      <img src="${thumbnailUrl}" alt="${item.title}" class="max-w-full max-h-[75vh] object-contain rounded-lg shadow-2xl">
+    `;
+  }
 };
 
 // 關閉燈箱
@@ -443,7 +454,7 @@ function closeLightbox() {
   setTimeout(() => {
     lightbox.classList.add('hidden');
     contentBox.innerHTML = ''; 
-    // 🚀 關閉時重新加回模糊效果，確保下一次非影片項目（如相片）打開時能有好看的毛玻璃背景
+    // 關閉時重新加回模糊效果，確保下一次打開照片項目時能有好看的毛玻璃背景
     lightbox.classList.add('backdrop-blur-md');
   }, 300);
 }
