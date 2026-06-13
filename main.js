@@ -267,7 +267,7 @@ function updateStats() {
   const favStat = document.getElementById('stat-favorites');
   
   if (totalStat) totalStat.innerHTML = `${travelData.length} <span class="text-sm text-stone-400">個回憶</span>`;
-  if (favStat) favStat.innerHTML = `${favorites.length} <span class="text-sm text-stone-400">個最愛</span>`;
+  if (favStat) favStat.innerHTML = `${favorites.length} <span class="text-sm text-stone-400">**個最愛</span>`;
 
   const totalBtn = totalStat?.parentElement;
   const favBtn = favStat?.parentElement;
@@ -366,6 +366,7 @@ function setupLightbox() {
 // 💡 8. 打開燈箱 (已修正 iOS 播放 Google Drive 影片黑屏與時間軸錯位問題)
 // 💡 8. 打開燈箱 (終極優化版：自動辨識 iOS 手機與 PC 電腦，完美解決兩端播放問題)
 // 💡 8. 打開燈箱 (終極完美版：徹底解決 iPhone 播放鍵劃斜線與電腦 CORS 阻擋問題)
+// 💡 8. 打開燈箱 (體驗終極版：防止 iOS 覆蓋網頁、確保 100% 順暢返回原卡片位置)
 window.openLightbox = function(id) {
   const item = travelData.find(d => d.id === id);
   if (!item) return;
@@ -412,24 +413,34 @@ window.openLightbox = function(id) {
                     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
       if (isIOS) {
-        // 【iOS 手機完美方案】
-        // 使用 Google 影片專用的線上串流網址 (export=view) 配合無密碼通道，繞過 iOS Safari 的劃斜線阻擋
-        const streamUrl = `https://drive.google.com/uc?id=${driveId}&export=view`;
-        
+        const thumbnailUrl = getMediaThumbnail(item);
+        // 使用 Google 雲端硬碟的專用原生 App 跳轉協定 (googledrive://)
+        // 若手機有裝 App 會直接喚起 App 播放；沒裝則會開啟不會破壞歷史紀錄的原生安全新分頁
+        const appUrl = `googledrive://vault.google.com/file/d/${driveId}/view`;
+        const webUrl = `https://drive.google.com/file/d/${driveId}/view?usp=drivesdk`;
+
         contentBox.innerHTML = `
-          <video 
-            class="w-full max-w-4xl max-h-[75vh] rounded-lg shadow-2xl bg-black" 
-            controls 
-            autoplay 
-            preload="auto"
-            playsinline 
-            webkit-playsinline>
-            <source src="${streamUrl}" type="video/mp4">
-            您的瀏覽器不支援此影片播放。
-          </video>
+          <div onclick="
+            const start = Date.now();
+            window.location.href = '${appUrl}';
+            setTimeout(() => {
+              if (Date.now() - start < 1500) {
+                window.open('${webUrl}', '_blank');
+              }
+            }, 500);
+          " class="relative max-w-full max-h-[75vh] rounded-lg shadow-2xl bg-black cursor-pointer overflow-hidden group">
+            <img src="${thumbnailUrl}" alt="${item.title}" class="max-w-full max-h-[75vh] object-contain opacity-75 group-hover:opacity-90 transition-opacity">
+            <div class="absolute inset-0 flex flex-col items-center justify-center text-white bg-black/20">
+              <div class="w-16 h-16 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center shadow-2xl border border-white/20 mb-3 group-hover:scale-110 transition-transform duration-300">
+                <i class="fa-solid fa-play text-2xl translate-x-0.5 text-white"></i>
+              </div>
+              <span class="text-xs tracking-wider bg-black/40 px-3 py-1.5 rounded-full backdrop-blur-sm">點擊流暢播放影片</span>
+              <p class="text-[10px] text-stone-400 mt-2">播放完畢點擊左上角即可返回本網頁</p>
+            </div>
+          </div>
         `;
       } else {
-        // 【PC 電腦 / 其他方案】使用 <iframe> 預覽播放器，完美規避電腦瀏覽器的 CORS 跨域阻擋
+        // 【PC 電腦 / 其他方案】使用原本完美的 <iframe> 原地預覽播放器
         contentBox.innerHTML = `
           <iframe 
             src="https://drive.google.com/file/d/${driveId}/preview" 
@@ -440,7 +451,7 @@ window.openLightbox = function(id) {
         `;
       }
     } else {
-      // 針對一般外部影片（例如標準非雲端硬碟的 .mp4 連結）
+      // 針對一般外部影片（例如 .mp4 直接網址）
       contentBox.innerHTML = `
         <video 
           src="${item.url}" 
@@ -461,7 +472,6 @@ window.openLightbox = function(id) {
     `;
   }
 };
-
 
 // 關閉燈箱
 function closeLightbox() {
