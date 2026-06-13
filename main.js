@@ -363,7 +363,7 @@ function setupLightbox() {
   });
 }
 
-// 💡 8. 打開燈箱 (回復至穩定播放且具備 [下載此影片/圖片] 的原版)
+// 💡 8. 打開燈箱 (已修正 iOS 播放 Google Drive 影片黑屏與時間軸錯位問題)
 window.openLightbox = function(id) {
   const item = travelData.find(d => d.id === id);
   if (!item) return;
@@ -405,14 +405,32 @@ window.openLightbox = function(id) {
 
   if (item.type === 'video') {
     if (driveId) {
-      // 針對 Google Drive 影片：使用原生 <iframe> 播放器 (100% 播放成功)
+      // 🚀 【核心修正】針對 Google Drive 影片：不再使用 iframe！
+      // 改用 Google Drive 的直接串流點（Stream URL），並套用 HTML5 原生 video 標籤
+      const streamUrl = `https://drive.google.com/uc?export=download&id=${driveId}`;
+      
       contentBox.innerHTML = `
-        <iframe src="https://drive.google.com/file/d/${driveId}/preview" class="w-full max-w-4xl aspect-video rounded-lg shadow-2xl bg-black border-none" allow="autoplay" allowfullscreen></iframe>
+        <video 
+          src="${streamUrl}" 
+          class="w-full max-w-4xl max-h-[75vh] rounded-lg shadow-2xl bg-black" 
+          controls 
+          autoplay 
+          playsinline 
+          webkit-playsinline>
+        </video>
       `;
     } else {
-      // 針對一般外部影片（例如 .mp4 連結）：還原使用原生 HTML5 <video> 播放
+      // 針對一般外部影片（例如 .mp4 連結）
       contentBox.innerHTML = `
-        <video src="${item.url}" class="max-w-full max-h-[75vh] rounded-lg shadow-2xl bg-black" controls autoplay loop playsinline></video>
+        <video 
+          src="${item.url}" 
+          class="max-w-full max-h-[75vh] rounded-lg shadow-2xl bg-black" 
+          controls 
+          autoplay 
+          loop 
+          playsinline 
+          webkit-playsinline>
+        </video>
       `;
     }
   } else {
