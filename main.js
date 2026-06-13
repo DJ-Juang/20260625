@@ -266,8 +266,8 @@ function updateStats() {
   const totalStat = document.getElementById('stat-total');
   const favStat = document.getElementById('stat-favorites');
   
-  if (totalStat) totalStat.innerHTML = `${travelData.length} <span class="text-sm text-stone-400">個回憶</span>`;
-  if (favStat) favStat.innerHTML = `${favorites.length} <span class="text-sm text-stone-400">個最愛</span>`;
+  if (totalStat) totalStat.innerHTML = `${travelData.length} <span class="text-sm text-stone-400">-個回憶</span>`;
+  if (favStat) favStat.innerHTML = `${favorites.length} <span class="text-sm text-stone-400">-個最愛</span>`;
 
   const totalBtn = totalStat?.parentElement;
   const favBtn = favStat?.parentElement;
@@ -363,7 +363,7 @@ function setupLightbox() {
   });
 }
 
-// 💡 8. 打開燈箱 (已新增：動態注入精緻高質感的「下載按鈕」，解決右鍵功能被屏蔽的問題)
+// 💡 8. 打開燈箱 (已新增：自動修復 iOS 視訊黑屏之 GPU Compositor 衝突問題)
 window.openLightbox = function(id) {
   const item = travelData.find(d => d.id === id);
   if (!item) return;
@@ -378,39 +378,46 @@ window.openLightbox = function(id) {
 
   const driveId = getGoogleDriveId(item.url);
 
-  // 🚀 關鍵修改 1：智能判定下載連結。若是 Google Drive，則生成強制直接下載連結
+  // 智能判定下載連結。若是 Google Drive，則生成強制直接下載連結
   const downloadUrl = driveId 
     ? `https://drive.google.com/uc?export=download&id=${driveId}`
     : item.url;
 
-  // 🚀 關鍵修改 2：在標題下方動態注入極簡、帶有雜誌感的高階下載按鈕
+  // 在標題下方動態注入極簡、帶有雜誌感的高階下載按鈕
   let downloadBtn = document.getElementById('lightbox-download');
   if (!downloadBtn) {
     downloadBtn = document.createElement('a');
     downloadBtn.id = 'lightbox-download';
-    // 採用優雅的微白虛線框，滑鼠懸停時底色微微亮起的極簡法式美學
     downloadBtn.className = "mt-4 inline-flex items-center gap-2 px-5 py-2 border border-white/20 hover:border-white text-white hover:bg-white/10 text-xs tracking-widest rounded-sm transition-all duration-300 uppercase font-light cursor-pointer";
     titleText.parentNode.appendChild(downloadBtn);
   }
   downloadBtn.href = downloadUrl;
   downloadBtn.target = "_blank";
-  // 加上下載提示屬性
   downloadBtn.setAttribute('download', `${item.title}`); 
   downloadBtn.innerHTML = `<i class="fa-solid fa-arrow-down-to-bracket text-[10px]"></i> 下載此${item.type === 'video' ? '影片' : '照片'}`;
 
   if (item.type === 'video') {
+    // 🚀 【關鍵修復 iOS 黑屏 Bug】
+    // 當播放影片時，動態將含有 backdrop-filter 的 backdrop-blur-md 樣式類別從燈箱父元素中移除
+    // 這能完美避免 iOS GPU 渲染引擎在模糊濾鏡與視訊軌緩衝區合成時發生的黑屏衝突。
+    lightbox.classList.remove('backdrop-blur-md');
+    
     if (driveId) {
-      // 🚀 針對 Google Drive 影片：使用原生 <iframe> 播放器 (100% 播放成功)
+      // 針對 Google Drive 影片：使用原生 <iframe> 播放器 (100% 播放成功)
+      // 同時加入 -webkit-transform: translate3d 樣式強迫啟用純淨獨立的 iOS 顯示緩衝區
       contentBox.innerHTML = `
-        <iframe src="https://drive.google.com/file/d/${driveId}/preview" class="w-full max-w-4xl aspect-video rounded-lg shadow-2xl bg-black border-none" allow="autoplay" allowfullscreen></iframe>
+        <iframe src="https://drive.google.com/file/d/${driveId}/preview" class="w-full max-w-4xl aspect-video rounded-lg shadow-2xl bg-black border-none" style="-webkit-transform: translate3d(0,0,0); transform: translate3d(0,0,0);" allow="autoplay" allowfullscreen></iframe>
       `;
     } else {
-      // 🚀 針對一般外部影片（例如 .mp4 連結）：還原使用原生 HTML5 <video> 播放
+      // 針對一般外部影片（例如 .mp4 連結）：還原使用原生 HTML5 <video> 播放
       contentBox.innerHTML = `
-        <video src="${item.url}" class="max-w-full max-h-[75vh] rounded-lg shadow-2xl bg-black" controls autoplay loop playsinline></video>
+        <video src="${item.url}" class="max-w-full max-h-[75vh] rounded-lg shadow-2xl bg-black" style="-webkit-transform: translate3d(0,0,0); transform: translate3d(0,0,0);" controls autoplay loop playsinline></video>
       `;
     }
   } else {
+    // 🚀 照片項目：可以完美相容毛玻璃效果，因此重新補上類別，享受高擬真的雜誌美感
+    lightbox.classList.add('backdrop-blur-md');
+    
     // 圖片項目：使用 <img> 標籤
     const thumbnailUrl = getMediaThumbnail(item);
     contentBox.innerHTML = `
@@ -436,5 +443,7 @@ function closeLightbox() {
   setTimeout(() => {
     lightbox.classList.add('hidden');
     contentBox.innerHTML = ''; 
+    // 🚀 關閉時重新加回模糊效果，確保下一次非影片項目（如相片）打開時能有好看的毛玻璃背景
+    lightbox.classList.add('backdrop-blur-md');
   }, 300);
 }
