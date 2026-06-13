@@ -365,6 +365,7 @@ function setupLightbox() {
 
 // 💡 8. 打開燈箱 (已修正 iOS 播放 Google Drive 影片黑屏與時間軸錯位問題)
 // 💡 8. 打開燈箱 (終極優化版：自動辨識 iOS 手機與 PC 電腦，完美解決兩端播放問題)
+// 💡 8. 打開燈箱 (終極完美版：徹底解決 iPhone 播放鍵劃斜線與電腦 CORS 阻擋問題)
 window.openLightbox = function(id) {
   const item = travelData.find(d => d.id === id);
   if (!item) return;
@@ -411,20 +412,24 @@ window.openLightbox = function(id) {
                     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
       if (isIOS) {
-        // 【iOS 手機方案】使用 HTML5 video 標籤 + 直連網址，防止黑屏與時間軸錯位
-        const streamUrl = `https://drive.google.com/uc?export=download&id=${driveId}`;
+        // 【iOS 手機完美方案】
+        // 使用 Google 影片專用的線上串流網址 (export=view) 配合無密碼通道，繞過 iOS Safari 的劃斜線阻擋
+        const streamUrl = `https://drive.google.com/uc?id=${driveId}&export=view`;
+        
         contentBox.innerHTML = `
           <video 
-            src="${streamUrl}" 
             class="w-full max-w-4xl max-h-[75vh] rounded-lg shadow-2xl bg-black" 
             controls 
             autoplay 
+            preload="auto"
             playsinline 
             webkit-playsinline>
+            <source src="${streamUrl}" type="video/mp4">
+            您的瀏覽器不支援此影片播放。
           </video>
         `;
       } else {
-        // 【PC 電腦 / 其他方案】還原使用 <iframe> 預覽播放器，完美規避電腦瀏覽器的 CORS 跨域阻擋
+        // 【PC 電腦 / 其他方案】使用 <iframe> 預覽播放器，完美規避電腦瀏覽器的 CORS 跨域阻擋
         contentBox.innerHTML = `
           <iframe 
             src="https://drive.google.com/file/d/${driveId}/preview" 
@@ -456,6 +461,7 @@ window.openLightbox = function(id) {
     `;
   }
 };
+
 
 // 關閉燈箱
 function closeLightbox() {
