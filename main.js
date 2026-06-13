@@ -267,7 +267,7 @@ function updateStats() {
   const favStat = document.getElementById('stat-favorites');
   
   if (totalStat) totalStat.innerHTML = `${travelData.length} <span class="text-sm text-stone-400">個回憶</span>`;
-  if (favStat) favStat.innerHTML = `${favorites.length} <span class="text-sm text-stone-400">--個最愛</span>`;
+  if (favStat) favStat.innerHTML = `${favorites.length} <span class="text-sm text-stone-400">個最愛</span>`;
 
   const totalBtn = totalStat?.parentElement;
   const favBtn = favStat?.parentElement;
@@ -364,6 +364,7 @@ function setupLightbox() {
 }
 
 // 💡 8. 打開燈箱 (已修正 iOS 播放 Google Drive 影片黑屏與時間軸錯位問題)
+// 💡 8. 打開燈箱 (終極優化版：自動辨識 iOS 手機與 PC 電腦，完美解決兩端播放問題)
 window.openLightbox = function(id) {
   const item = travelData.find(d => d.id === id);
   if (!item) return;
@@ -405,22 +406,36 @@ window.openLightbox = function(id) {
 
   if (item.type === 'video') {
     if (driveId) {
-      // 🚀 【核心修正】針對 Google Drive 影片：不再使用 iframe！
-      // 改用 Google Drive 的直接串流點（Stream URL），並套用 HTML5 原生 video 標籤
-      const streamUrl = `https://drive.google.com/uc?export=download&id=${driveId}`;
-      
-      contentBox.innerHTML = `
-        <video 
-          src="${streamUrl}" 
-          class="w-full max-w-4xl max-h-[75vh] rounded-lg shadow-2xl bg-black" 
-          controls 
-          autoplay 
-          playsinline 
-          webkit-playsinline>
-        </video>
-      `;
+      // 🚀 核心偵測：判定使用者是否為 iPhone、iPad 或 iPod (iOS 系統)
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+      if (isIOS) {
+        // 【iOS 手機方案】使用 HTML5 video 標籤 + 直連網址，防止黑屏與時間軸錯位
+        const streamUrl = `https://drive.google.com/uc?export=download&id=${driveId}`;
+        contentBox.innerHTML = `
+          <video 
+            src="${streamUrl}" 
+            class="w-full max-w-4xl max-h-[75vh] rounded-lg shadow-2xl bg-black" 
+            controls 
+            autoplay 
+            playsinline 
+            webkit-playsinline>
+          </video>
+        `;
+      } else {
+        // 【PC 電腦 / 其他方案】還原使用 <iframe> 預覽播放器，完美規避電腦瀏覽器的 CORS 跨域阻擋
+        contentBox.innerHTML = `
+          <iframe 
+            src="https://drive.google.com/file/d/${driveId}/preview" 
+            class="w-full max-w-4xl aspect-video rounded-lg shadow-2xl bg-black border-none" 
+            allow="autoplay" 
+            allowfullscreen>
+          </iframe>
+        `;
+      }
     } else {
-      // 針對一般外部影片（例如 .mp4 連結）
+      // 針對一般外部影片（例如標準非雲端硬碟的 .mp4 連結）
       contentBox.innerHTML = `
         <video 
           src="${item.url}" 
