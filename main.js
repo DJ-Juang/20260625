@@ -14,6 +14,35 @@ document.addEventListener("DOMContentLoaded", () => {
   setupLightbox(); // 啟用燈箱初始化
 });
 
+// 💡 輔助函式：自動解析 Google Drive 網址中的檔案 ID
+function getGoogleDriveId(url) {
+  if (!url) return null;
+  const regId = /\/file\/d\/([a-zA-Z0-9_-]+)/;
+  const regIdQuery = /[?&]id=([a-zA-Z0-9_-]+)/;
+  
+  const match1 = url.match(regId);
+  if (match1 && match1[1]) return match1[1];
+  
+  const match2 = url.match(regIdQuery);
+  if (match2 && match2[1]) return match2[1];
+  
+  return null;
+}
+
+// 💡 輔助函式：判斷是否為 Google Drive 資源
+function isGoogleDriveMedia(url) {
+  return getGoogleDriveId(url) !== null;
+}
+
+// 💡 輔助函式：根據影片或圖片網址，動態獲取最穩定的高畫質縮圖網址（僅限 Google Drive）
+function getMediaThumbnail(item) {
+  const driveId = getGoogleDriveId(item.url);
+  if (driveId) {
+    return `https://drive.google.com/thumbnail?sz=w1200&id=${driveId}`;
+  }
+  return item.url;
+}
+
 // 取得當前篩選模式下的資料列表
 function getFilteredData() {
   return filterMode === 'all' 
@@ -21,21 +50,41 @@ function getFilteredData() {
     : travelData.filter(item => favorites.includes(item.id));
 }
 
-// 1. 頂部無縫滾動 Banner
+// 1. 頂部無縫滾動 Banner (已修正：同時支援 Google Drive 影片與一般外部影片)
 function initCarousel() {
   const track = document.getElementById('carousel-track');
   if (!track) return;
 
   const carouselItems = [...travelData, ...travelData, ...travelData];
   
-  track.innerHTML = carouselItems.map(item => `
-    <div class="w-48 h-32 mx-2 flex-shrink-0 overflow-hidden rounded shadow-sm border border-stone-800 bg-stone-900">
-      ${item.type === 'video' 
-        ? `<video src="${item.url}" class="w-full h-full object-cover opacity-75 hover:opacity-100 transition-opacity duration-300" autoplay muted loop playsinline></video>`
-        : `<img src="${item.url}" alt="${item.title}" class="w-full h-full object-cover opacity-75 hover:opacity-100 transition-opacity duration-300">`
-      }
-    </div>
-  `).join('');
+  track.innerHTML = carouselItems.map(item => {
+    const isDrive = isGoogleDriveMedia(item.url);
+    
+    // 如果是一般外部影片，則使用 <video> 標籤自動播放；其餘使用 <img> 標籤
+    if (item.type === 'video' && !isDrive) {
+      return `
+        <div class="w-48 h-32 mx-2 flex-shrink-0 overflow-hidden rounded shadow-sm border border-stone-800 bg-stone-900 relative group">
+          <video src="${item.url}" class="w-full h-full object-cover opacity-75 hover:opacity-100 transition-opacity duration-300" autoplay muted loop playsinline></video>
+          <div class="absolute inset-0 flex items-center justify-center bg-black/30 text-white pointer-events-none">
+            <i class="fa-solid fa-play text-xs opacity-70"></i>
+          </div>
+        </div>
+      `;
+    } else {
+      const thumbnailUrl = getMediaThumbnail(item);
+      return `
+        <div class="w-48 h-32 mx-2 flex-shrink-0 overflow-hidden rounded shadow-sm border border-stone-800 bg-stone-900 relative group">
+          <img src="${thumbnailUrl}" alt="${item.title}" class="w-full h-full object-cover opacity-75 hover:opacity-100 transition-opacity duration-300">
+          ${item.type === 'video' 
+            ? `<div class="absolute inset-0 flex items-center justify-center bg-black/30 text-white pointer-events-none">
+                <i class="fa-solid fa-play text-xs opacity-70"></i>
+               </div>`
+            : ''
+          }
+        </div>
+      `;
+    }
+  }).join('');
 }
 
 // 初始化篩選標籤的點擊事件與手勢樣式
@@ -44,11 +93,9 @@ function setupFilterTabs() {
   const favBtn = document.getElementById('stat-favorites')?.parentElement;
 
   if (totalBtn && favBtn) {
-    // 注入基礎 RWD 手勢與雜誌感轉場動畫樣式
     totalBtn.className = "flex flex-col cursor-pointer transition-all duration-300 p-4 rounded-lg border border-transparent hover:bg-stone-50 select-none w-full md:w-auto";
     favBtn.className = "flex flex-col cursor-pointer transition-all duration-300 p-4 rounded-lg border border-transparent hover:bg-stone-50 select-none w-full md:w-auto";
 
-    // 點擊「已紀錄的足跡」還原呈現所有照片
     totalBtn.addEventListener('click', () => {
       if (filterMode !== 'all') {
         filterMode = 'all';
@@ -59,7 +106,6 @@ function setupFilterTabs() {
       }
     });
 
-    // 點擊「我的私房收藏」只呈現最愛照片
     favBtn.addEventListener('click', () => {
       if (filterMode !== 'favorites') {
         filterMode = 'favorites';
@@ -72,14 +118,13 @@ function setupFilterTabs() {
   }
 }
 
-// 2. 渲染 3x3 照片卡片網格 (支援動態篩選模式)
+// 2. 渲染 3x3 照片卡片網格 (已修正：一般外部影片使用 <video> 原生播放，Drive 影片則使用輕量縮圖)
 function renderGallery() {
   const grid = document.getElementById('gallery-grid');
   if (!grid) return;
 
   const activeData = getFilteredData();
   
-  // 安全限制：若因取消收藏導致當前頁數超出最大頁數，自動修正回最後一頁
   const totalPages = Math.ceil(activeData.length / ITEMS_PER_PAGE) || 1;
   if (currentPage > totalPages) {
     currentPage = totalPages;
@@ -91,7 +136,6 @@ function renderGallery() {
 
   grid.innerHTML = '';
 
-  // 處理無資料時的雜誌風提示（尤其是當收藏清單空空如也時）
   if (pageData.length === 0) {
     if (filterMode === 'favorites') {
       grid.innerHTML = `
@@ -112,21 +156,42 @@ function renderGallery() {
     card.className = "bg-white border border-stone-200 rounded overflow-hidden shadow-sm hover:shadow-md transition-all duration-500 transform hover:-translate-y-1 group flex flex-col justify-between";
     
     const displayId = String(item.id).padStart(2, '0');
+    const isDrive = isGoogleDriveMedia(item.url);
+
+    // 根據媒體來源決定預覽區的 HTML 結構
+    let mediaHTML = '';
+    if (item.type === 'video' && !isDrive) {
+      // 1. 一般外部影片 (.mp4) 的預覽：使用原生 <video> 自動循環播放
+      mediaHTML = `
+        <video src="${item.url}" class="w-full h-full object-cover" muted loop autoplay playsinline></video>
+        <div class="absolute inset-0 flex items-center justify-center bg-stone-900 bg-opacity-30 z-10 text-white transition-opacity duration-300">
+          <div class="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+            <i class="fa-solid fa-play text-lg translate-x-0.5"></i>
+          </div>
+        </div>
+      `;
+    } else {
+      // 2. Google Drive 影片（使用縮圖）或是一般圖片：使用 <img> 標籤
+      const thumbnailUrl = getMediaThumbnail(item);
+      mediaHTML = `
+        <img src="${thumbnailUrl}" alt="${item.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out">
+        ${item.type === 'video' 
+          ? `
+            <div class="absolute inset-0 flex items-center justify-center bg-stone-900 bg-opacity-30 z-10 text-white transition-opacity duration-300">
+              <div class="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                <i class="fa-solid fa-play text-lg translate-x-0.5"></i>
+              </div>
+            </div>
+            `
+          : ''
+        }
+      `;
+    }
 
     card.innerHTML = `
       <!-- 上方預覽區：點擊原地觸發滿版燈箱 -->
       <div onclick="openLightbox(${item.id})" class="block relative aspect-[4/3] overflow-hidden bg-stone-100 cursor-pointer">
-        ${item.type === 'video' 
-          ? `
-            <div class="absolute inset-0 flex items-center justify-center bg-stone-900 bg-opacity-40 z-10 text-white group-hover:scale-110 transition-transform duration-500">
-              <div class="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center shadow-lg">
-                <i class="fa-solid fa-play text-lg translate-x-0.5"></i>
-              </div>
-            </div>
-            <video src="${item.url}" class="w-full h-full object-cover" muted loop></video>
-            `
-          : `<img src="${item.url}" alt="${item.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out">`
-        }
+        ${mediaHTML}
         <!-- 左上方：#ID 編號 -->
         <span class="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-[10px] tracking-widest text-[#8C6239] px-2.5 py-1 uppercase rounded-sm font-bold z-10 shadow-sm border border-stone-100 font-serif">
           #${displayId}
@@ -151,7 +216,7 @@ function renderGallery() {
   });
 }
 
-// 3. 分頁控制 (依據目前篩選後的資料長度動態調整)
+// 3. 分頁控制
 function renderPagination() {
   const paginationNav = document.getElementById('pagination');
   if (!paginationNav) return;
@@ -204,32 +269,25 @@ function updateStats() {
   if (totalStat) totalStat.innerHTML = `${travelData.length} <span class="text-sm text-stone-400">個回憶</span>`;
   if (favStat) favStat.innerHTML = `${favorites.length} <span class="text-sm text-stone-400">個最愛</span>`;
 
-  // 取得父容器進行視覺樣式切換
   const totalBtn = totalStat?.parentElement;
   const favBtn = favStat?.parentElement;
 
   if (totalBtn && favBtn) {
     if (filterMode === 'all') {
-      // 高亮「已紀錄的足跡」
       totalBtn.classList.add('border-stone-300', 'bg-white', 'shadow-sm');
       totalBtn.classList.remove('border-transparent');
-      
-      // 暗化「我的私房收藏」
       favBtn.classList.remove('border-stone-300', 'bg-white', 'shadow-sm');
       favBtn.classList.add('border-transparent');
     } else {
-      // 高亮「我的私房收藏」
       favBtn.classList.add('border-stone-300', 'bg-white', 'shadow-sm');
       favBtn.classList.remove('border-transparent');
-      
-      // 暗化「已紀錄的足跡」
       totalBtn.classList.remove('border-stone-300', 'bg-white', 'shadow-sm');
       totalBtn.classList.add('border-transparent');
     }
   }
 }
 
-// 5. 切換最愛狀態 (支援在我的最愛頁面取消收藏時立刻移除)
+// 5. 切換最愛狀態
 window.toggleFavorite = function(id) {
   const index = favorites.indexOf(id);
   if (index === -1) {
@@ -239,8 +297,6 @@ window.toggleFavorite = function(id) {
   }
   
   localStorage.setItem('travel_favorites', JSON.stringify(favorites));
-  
-  // 重新渲染當前視窗，並保持在合理的分頁範圍內
   renderGallery();
   renderPagination();
   updateStats();
@@ -279,7 +335,7 @@ function setupModal() {
   btnConfirm.addEventListener('click', () => {
     favorites = [];
     localStorage.removeItem('travel_favorites');
-    filterMode = 'all'; // 重設時自動切換回呈現所有照片
+    filterMode = 'all';
     currentPage = 1;
     renderGallery();
     renderPagination();
@@ -307,7 +363,7 @@ function setupLightbox() {
   });
 }
 
-// 打開燈箱
+// 💡 8. 打開燈箱 (已新增：動態注入精緻高質感的「下載按鈕」，解決右鍵功能被屏蔽的問題)
 window.openLightbox = function(id) {
   const item = travelData.find(d => d.id === id);
   if (!item) return;
@@ -320,13 +376,45 @@ window.openLightbox = function(id) {
   titleText.innerText = item.title;
   categoryText.innerText = item.category;
 
+  const driveId = getGoogleDriveId(item.url);
+
+  // 🚀 關鍵修改 1：智能判定下載連結。若是 Google Drive，則生成強制直接下載連結
+  const downloadUrl = driveId 
+    ? `https://drive.google.com/uc?export=download&id=${driveId}`
+    : item.url;
+
+  // 🚀 關鍵修改 2：在標題下方動態注入極簡、帶有雜誌感的高階下載按鈕
+  let downloadBtn = document.getElementById('lightbox-download');
+  if (!downloadBtn) {
+    downloadBtn = document.createElement('a');
+    downloadBtn.id = 'lightbox-download';
+    // 採用優雅的微白虛線框，滑鼠懸停時底色微微亮起的極簡法式美學
+    downloadBtn.className = "mt-4 inline-flex items-center gap-2 px-5 py-2 border border-white/20 hover:border-white text-white hover:bg-white/10 text-xs tracking-widest rounded-sm transition-all duration-300 uppercase font-light cursor-pointer";
+    titleText.parentNode.appendChild(downloadBtn);
+  }
+  downloadBtn.href = downloadUrl;
+  downloadBtn.target = "_blank";
+  // 加上下載提示屬性
+  downloadBtn.setAttribute('download', `${item.title}`); 
+  downloadBtn.innerHTML = `<i class="fa-solid fa-arrow-down-to-bracket text-[10px]"></i> 下載此${item.type === 'video' ? '影片' : '照片'}`;
+
   if (item.type === 'video') {
-    contentBox.innerHTML = `
-      <video src="${item.url}" class="max-w-full max-h-[75vh] rounded-lg shadow-2xl" controls autoplay loop></video>
-    `;
+    if (driveId) {
+      // 🚀 針對 Google Drive 影片：使用原生 <iframe> 播放器 (100% 播放成功)
+      contentBox.innerHTML = `
+        <iframe src="https://drive.google.com/file/d/${driveId}/preview" class="w-full max-w-4xl aspect-video rounded-lg shadow-2xl bg-black border-none" allow="autoplay" allowfullscreen></iframe>
+      `;
+    } else {
+      // 🚀 針對一般外部影片（例如 .mp4 連結）：還原使用原生 HTML5 <video> 播放
+      contentBox.innerHTML = `
+        <video src="${item.url}" class="max-w-full max-h-[75vh] rounded-lg shadow-2xl bg-black" controls autoplay loop playsinline></video>
+      `;
+    }
   } else {
+    // 圖片項目：使用 <img> 標籤
+    const thumbnailUrl = getMediaThumbnail(item);
     contentBox.innerHTML = `
-      <img src="${item.url}" alt="${item.title}" class="max-w-full max-h-[75vh] object-contain rounded-lg shadow-2xl">
+      <img src="${thumbnailUrl}" alt="${item.title}" class="max-w-full max-h-[75vh] object-contain rounded-lg shadow-2xl">
     `;
   }
 
