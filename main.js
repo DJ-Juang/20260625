@@ -367,6 +367,7 @@ function setupLightbox() {
 // 💡 8. 打開燈箱 (終極優化版：自動辨識 iOS 手機與 PC 電腦，完美解決兩端播放問題)
 // 💡 8. 打開燈箱 (終極完美版：徹底解決 iPhone 播放鍵劃斜線與電腦 CORS 阻擋問題)
 // 💡 8. 打開燈箱 (體驗終極版：防止 iOS 覆蓋網頁、確保 100% 順暢返回原卡片位置)
+// 💡 8. 打開燈箱 (終極不迷路安全版：電腦原地看，手機分頁看並附帶防失蹤導航提示)
 window.openLightbox = function(id) {
   const item = travelData.find(d => d.id === id);
   if (!item) return;
@@ -413,29 +414,30 @@ window.openLightbox = function(id) {
                     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
       if (isIOS) {
+        // 取得該 Google 影片的預覽縮圖
         const thumbnailUrl = getMediaThumbnail(item);
-        // 使用 Google 雲端硬碟的專用原生 App 跳轉協定 (googledrive://)
-        // 若手機有裝 App 會直接喚起 App 播放；沒裝則會開啟不會破壞歷史紀錄的原生安全新分頁
-        const appUrl = `googledrive://vault.google.com/file/d/${driveId}/view`;
+        // 使用最標準的官方網頁版連結，確保 100% 準確開啟該影片，絕不迷路跳到首頁
         const webUrl = `https://drive.google.com/file/d/${driveId}/view?usp=drivesdk`;
 
         contentBox.innerHTML = `
-          <div onclick="
-            const start = Date.now();
-            window.location.href = '${appUrl}';
-            setTimeout(() => {
-              if (Date.now() - start < 1500) {
-                window.open('${webUrl}', '_blank');
-              }
-            }, 500);
-          " class="relative max-w-full max-h-[75vh] rounded-lg shadow-2xl bg-black cursor-pointer overflow-hidden group">
-            <img src="${thumbnailUrl}" alt="${item.title}" class="max-w-full max-h-[75vh] object-contain opacity-75 group-hover:opacity-90 transition-opacity">
-            <div class="absolute inset-0 flex flex-col items-center justify-center text-white bg-black/20">
-              <div class="w-16 h-16 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center shadow-2xl border border-white/20 mb-3 group-hover:scale-110 transition-transform duration-300">
+          <div onclick="window.open('${webUrl}', '_blank')" class="relative max-w-full max-h-[65vh] rounded-lg shadow-2xl bg-black cursor-pointer overflow-hidden group">
+            <img src="${thumbnailUrl}" alt="${item.title}" class="max-w-full max-h-[65vh] object-contain opacity-70 group-hover:opacity-85 transition-opacity">
+            <div class="absolute inset-0 flex flex-col items-center justify-center text-white bg-black/20 p-4 text-center select-none">
+              <div class="w-16 h-16 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center shadow-2xl border border-white/20 mb-4 group-hover:scale-110 transition-transform duration-300">
                 <i class="fa-solid fa-play text-2xl translate-x-0.5 text-white"></i>
               </div>
-              <span class="text-xs tracking-wider bg-black/40 px-3 py-1.5 rounded-full backdrop-blur-sm">點擊流暢播放影片</span>
-              <p class="text-[10px] text-stone-400 mt-2">播放完畢點擊左上角即可返回本網頁</p>
+              <span class="text-sm font-medium tracking-wider bg-[#8C6239] px-4 py-2 rounded shadow-md animate-pulse">
+                點擊在新視窗流暢播放影片
+              </span>
+              
+              <div class="mt-6 bg-black/70 backdrop-blur-md p-3 rounded-md border border-white/10 max-w-[280px] shadow-2xl">
+                <p class="text-xs text-amber-300 font-semibold mb-1">
+                  <i class="fa-solid fa-circle-info mr-1"></i> 手機返回原網頁秘訣：
+                </p>
+                <p class="text-[11px] text-stone-300 leading-relaxed">
+                  影片看完後，請點擊手機瀏覽器右下角的<span class="text-white font-bold mx-0.5">「分頁切換鈕」</span>即可毫秒秒速回到原本卡片位置！
+                </p>
+              </div>
             </div>
           </div>
         `;
