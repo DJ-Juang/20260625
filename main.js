@@ -370,10 +370,27 @@ function setupLightbox() {
 // 💡 8. 打開燈箱 (終極不迷路安全版：電腦原地看，手機分頁看並附帶防失蹤導航提示)
 // 💡 8. 打開燈箱 (驚世大結局版：利用網址錨點記號，徹底解決手機黑屏與回不來卡片的世紀難題)
 // 💡 8. 打開燈箱 (比照舊專案流暢體驗：手機看完影片，按左上角「完成/◀」自動回原卡片)
+// 💡 8. 打開燈箱 (完美復刻舊專案黃金邏輯：手機免燈箱直接就地播放，看完點左上角秒回原卡片)
 window.openLightbox = function(id) {
   const item = travelData.find(d => d.id === id);
   if (!item) return;
 
+  const driveId = getGoogleDriveId(item.url);
+
+  // 🚀 【手機端影音終極分流】判定使用者是否為 iPhone / iPad (iOS 系統)
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+  // 🎯 如果是影片，且使用者用的是 iPhone 手機
+  if (item.type === 'video' && isIOS && driveId) {
+    // 完全複製舊專案成功秘訣：不開燈箱、不開新分頁，直接在當前視窗就地跳轉到官方完美的播放頁面
+    window.location.href = `https://drive.google.com/file/d/${driveId}/view?usp=drivesdk`;
+    return; // 直接中斷後面開燈箱的動作！
+  }
+
+  // ----------------------------------------------------
+  // 以下為【PC 電腦版影片】與【全平台照片】的正常燈箱邏輯
+  // ----------------------------------------------------
   const lightbox = document.getElementById('lightbox');
   const contentBox = document.getElementById('lightbox-content-box');
   const titleText = document.getElementById('lightbox-title');
@@ -382,9 +399,7 @@ window.openLightbox = function(id) {
   titleText.innerText = item.title;
   categoryText.innerText = item.category;
 
-  const driveId = getGoogleDriveId(item.url);
-
-  // 智能判定下載連結。若是 Google Drive，則生成強制直接下載連結
+  // 智能判定下載連結
   const downloadUrl = driveId 
     ? `https://drive.google.com/uc?export=download&id=${driveId}`
     : item.url;
@@ -410,56 +425,17 @@ window.openLightbox = function(id) {
   }, 10);
 
   if (item.type === 'video') {
-    if (driveId) {
-      // 🚀 核心偵測：判定使用者是否為 iPhone、iPad 或 iPod (iOS 系統)
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-                    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-
-      if (isIOS) {
-        // 【iOS 手機完美方案】：比照舊專案成功模式
-        // 將 Google Drive 影片包裝成「偽靜態點對點視訊流」，不開新視窗、不使用 iframe
-        // 直接用 HTML5 播放器激活 iOS 的底層核心（Media Player Player）
-        const iosStreamUrl = `https://drive.google.com/uc?export=download&id=${driveId}`;
-        
-        contentBox.innerHTML = `
-          <video 
-            src="${iosStreamUrl}" 
-            class="w-full max-w-4xl max-h-[70vh] rounded-lg shadow-2xl bg-black" 
-            controls 
-            autoplay 
-            preload="metadata"
-            playsinline="false" 
-            webkit-playsinline="false">
-            您的瀏覽器不支援此影片格式。
-          </video>
-        `;
-      } else {
-        // 【PC 電腦版】：維持原本運作完美的官方嵌入預覽播放器，防跨域
-        contentBox.innerHTML = `
-          <iframe 
-            src="https://drive.google.com/file/d/${driveId}/preview" 
-            class="w-full max-w-4xl aspect-video rounded-lg shadow-2xl bg-black border-none" 
-            allow="autoplay" 
-            allowfullscreen>
-          </iframe>
-        `;
-      }
-    } else {
-      // 針對一般外部影片（例如標準非雲端硬碟的 .mp4 連結）
-      contentBox.innerHTML = `
-        <video 
-          src="${item.url}" 
-          class="max-w-full max-h-[75vh] rounded-lg shadow-2xl bg-black" 
-          controls 
-          autoplay 
-          loop 
-          playsinline 
-          webkit-playsinline>
-        </video>
-      `;
-    }
+    // 這裡只會是 PC 電腦版走進來：使用完美的 <iframe> 原地預覽播放器
+    contentBox.innerHTML = `
+      <iframe 
+        src="https://drive.google.com/file/d/${driveId}/preview" 
+        class="w-full max-w-4xl aspect-video rounded-lg shadow-2xl bg-black border-none" 
+        allow="autoplay" 
+        allowfullscreen>
+      </iframe>
+    `;
   } else {
-    // 圖片項目：使用 <img> 標籤
+    // 圖片項目（全平台共通）：使用 <img> 標籤
     const thumbnailUrl = getMediaThumbnail(item);
     contentBox.innerHTML = `
       <img src="${thumbnailUrl}" alt="${item.title}" class="max-w-full max-h-[75vh] object-contain rounded-lg shadow-2xl">
