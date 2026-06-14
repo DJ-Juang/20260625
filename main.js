@@ -267,7 +267,7 @@ function updateStats() {
   const favStat = document.getElementById('stat-favorites');
   
   if (totalStat) totalStat.innerHTML = `${travelData.length} <span class="text-sm text-stone-400">個回憶</span>`;
-  if (favStat) favStat.innerHTML = `${favorites.length} <span class="text-sm text-stone-400">個最愛2</span>`;
+  if (favStat) favStat.innerHTML = `${favorites.length} <span class="text-sm text-stone-400">個最愛</span>`;
 
   const totalBtn = totalStat?.parentElement;
   const favBtn = favStat?.parentElement;
@@ -287,7 +287,7 @@ function updateStats() {
   }
 }
 
-// 5. 切換最愛狀態
+// 5. 切換最狀態
 window.toggleFavorite = function(id) {
   const index = favorites.indexOf(id);
   if (index === -1) {
