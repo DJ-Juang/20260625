@@ -369,6 +369,7 @@ function setupLightbox() {
 // 💡 8. 打開燈箱 (體驗終極版：防止 iOS 覆蓋網頁、確保 100% 順暢返回原卡片位置)
 // 💡 8. 打開燈箱 (終極不迷路安全版：電腦原地看，手機分頁看並附帶防失蹤導航提示)
 // 💡 8. 打開燈箱 (終極完美相容版：免跳轉、免切換分頁，手機看完直接點 X 就能回原卡片)
+// 💡 8. 打開燈箱 (驚世大結局版：利用網址錨點記號，徹底解決手機黑屏與回不來卡片的世紀難題)
 window.openLightbox = function(id) {
   const item = travelData.find(d => d.id === id);
   if (!item) return;
@@ -383,12 +384,12 @@ window.openLightbox = function(id) {
 
   const driveId = getGoogleDriveId(item.url);
 
-  // 智能判定下載連結。若是 Google Drive，則生成強制直接下載連結
+  // 智能判定下載連結
   const downloadUrl = driveId 
     ? `https://drive.google.com/uc?export=download&id=${driveId}`
     : item.url;
 
-  // 在標題下方動態注入極簡、帶有雜誌感的高階下載按鈕
+  // 下載按鈕注入
   let downloadBtn = document.getElementById('lightbox-download');
   if (!downloadBtn) {
     downloadBtn = document.createElement('a');
@@ -410,36 +411,53 @@ window.openLightbox = function(id) {
 
   if (item.type === 'video') {
     if (driveId) {
-      // 🚀 不論是 PC 還是 iPhone 均統一採用最穩定的嵌入式預覽，但針對手機版做樣式最佳化
-      // 加上 webkitallowfullscreen 與 allowfullscreen，強迫 iOS 在燈箱內激活原生全螢幕
-      contentBox.innerHTML = `
-        <div class="w-full max-w-4xl aspect-video rounded-lg shadow-2xl bg-black overflow-hidden relative">
+      // 🚀 核心偵測：判定使用者是否為 iPhone、iPad 或 iPod (iOS 系統)
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+      if (isIOS) {
+        // 【iOS 手機完美分流】
+        const thumbnailUrl = getMediaThumbnail(item);
+        const webUrl = `https://drive.google.com/file/d/${driveId}/view?usp=drivesdk`;
+
+        // 💡 關鍵：點擊時，先在目前的歷史紀錄寫入特殊錨點記號 (?id=X)，然後就地跳轉！
+        contentBox.innerHTML = `
+          <div onclick="
+            const currentUrl = window.location.protocol + '//' + window.location.host + window.location.pathname + '?return_id=${item.id}';
+            window.history.replaceState({path: currentUrl}, '', currentUrl);
+            window.location.href = '${webUrl}';
+          " class="relative w-full max-w-4xl aspect-video rounded-lg shadow-2xl bg-black cursor-pointer overflow-hidden group">
+            <img src="${thumbnailUrl}" alt="${item.title}" class="w-full h-full object-cover opacity-70 group-hover:opacity-85 transition-opacity">
+            <div class="absolute inset-0 flex flex-col items-center justify-center text-white bg-black/30 p-4 text-center">
+              <div class="w-16 h-16 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center shadow-2xl border border-white/20 mb-3 group-hover:scale-110 transition-transform duration-300">
+                <i class="fa-solid fa-play text-2xl translate-x-0.5 text-white"></i>
+              </div>
+              <span class="text-sm font-medium tracking-wider bg-[#8C6239] px-4 py-2 rounded shadow-md">
+                點擊播放高畫質影片
+              </span>
+              <p class="text-[11px] text-stone-300 mt-3 bg-black/40 px-3 py-1 rounded-full">
+                ※ 看完後按左上角「◀」或「上一步」即可完美返回此卡片
+              </p>
+            </div>
+          </div>
+        `;
+      } else {
+        // 【PC 電腦】維持原狀，超完美的嵌入播放
+        contentBox.innerHTML = `
           <iframe 
             src="https://drive.google.com/file/d/${driveId}/preview" 
-            class="absolute inset-0 w-full h-full border-none" 
-            allow="autoplay; fullscreen" 
-            allowfullscreen="true"
-            webkitallowfullscreen="true"
-            mozallowfullscreen="true">
+            class="w-full max-w-4xl aspect-video rounded-lg shadow-2xl bg-black border-none" 
+            allow="autoplay" 
+            allowfullscreen>
           </iframe>
-        </div>
-      `;
+        `;
+      }
     } else {
-      // 針對一般外部影片（例如 .mp4 直接網址）
       contentBox.innerHTML = `
-        <video 
-          src="${item.url}" 
-          class="max-w-full max-h-[75vh] rounded-lg shadow-2xl bg-black" 
-          controls 
-          autoplay 
-          loop 
-          playsinline 
-          webkit-playsinline>
-        </video>
+        <video src="${item.url}" class="max-w-full max-h-[75vh] rounded-lg shadow-2xl bg-black" controls autoplay loop playsinline webkit-playsinline></video>
       `;
     }
   } else {
-    // 圖片項目：使用 <img> 標籤
     const thumbnailUrl = getMediaThumbnail(item);
     contentBox.innerHTML = `
       <img src="${thumbnailUrl}" alt="${item.title}" class="max-w-full max-h-[75vh] object-contain rounded-lg shadow-2xl">
