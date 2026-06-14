@@ -368,6 +368,7 @@ function setupLightbox() {
 // 💡 8. 打開燈箱 (終極完美版：徹底解決 iPhone 播放鍵劃斜線與電腦 CORS 阻擋問題)
 // 💡 8. 打開燈箱 (體驗終極版：防止 iOS 覆蓋網頁、確保 100% 順暢返回原卡片位置)
 // 💡 8. 打開燈箱 (終極不迷路安全版：電腦原地看，手機分頁看並附帶防失蹤導航提示)
+// 💡 8. 打開燈箱 (終極完美相容版：免跳轉、免切換分頁，手機看完直接點 X 就能回原卡片)
 window.openLightbox = function(id) {
   const item = travelData.find(d => d.id === id);
   if (!item) return;
@@ -409,49 +410,20 @@ window.openLightbox = function(id) {
 
   if (item.type === 'video') {
     if (driveId) {
-      // 🚀 核心偵測：判定使用者是否為 iPhone、iPad 或 iPod (iOS 系統)
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-                    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-
-      if (isIOS) {
-        // 取得該 Google 影片的預覽縮圖
-        const thumbnailUrl = getMediaThumbnail(item);
-        // 使用最標準的官方網頁版連結，確保 100% 準確開啟該影片，絕不迷路跳到首頁
-        const webUrl = `https://drive.google.com/file/d/${driveId}/view?usp=drivesdk`;
-
-        contentBox.innerHTML = `
-          <div onclick="window.open('${webUrl}', '_blank')" class="relative max-w-full max-h-[65vh] rounded-lg shadow-2xl bg-black cursor-pointer overflow-hidden group">
-            <img src="${thumbnailUrl}" alt="${item.title}" class="max-w-full max-h-[65vh] object-contain opacity-70 group-hover:opacity-85 transition-opacity">
-            <div class="absolute inset-0 flex flex-col items-center justify-center text-white bg-black/20 p-4 text-center select-none">
-              <div class="w-16 h-16 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center shadow-2xl border border-white/20 mb-4 group-hover:scale-110 transition-transform duration-300">
-                <i class="fa-solid fa-play text-2xl translate-x-0.5 text-white"></i>
-              </div>
-              <span class="text-sm font-medium tracking-wider bg-[#8C6239] px-4 py-2 rounded shadow-md animate-pulse">
-                點擊在新視窗流暢播放影片
-              </span>
-              
-              <div class="mt-6 bg-black/70 backdrop-blur-md p-3 rounded-md border border-white/10 max-w-[280px] shadow-2xl">
-                <p class="text-xs text-amber-300 font-semibold mb-1">
-                  <i class="fa-solid fa-circle-info mr-1"></i> 手機返回原網頁秘訣：
-                </p>
-                <p class="text-[11px] text-stone-300 leading-relaxed">
-                  影片看完後，請點擊手機瀏覽器右下角的<span class="text-white font-bold mx-0.5">「分頁切換鈕」</span>即可毫秒秒速回到原本卡片位置！
-                </p>
-              </div>
-            </div>
-          </div>
-        `;
-      } else {
-        // 【PC 電腦 / 其他方案】使用原本完美的 <iframe> 原地預覽播放器
-        contentBox.innerHTML = `
+      // 🚀 不論是 PC 還是 iPhone 均統一採用最穩定的嵌入式預覽，但針對手機版做樣式最佳化
+      // 加上 webkitallowfullscreen 與 allowfullscreen，強迫 iOS 在燈箱內激活原生全螢幕
+      contentBox.innerHTML = `
+        <div class="w-full max-w-4xl aspect-video rounded-lg shadow-2xl bg-black overflow-hidden relative">
           <iframe 
             src="https://drive.google.com/file/d/${driveId}/preview" 
-            class="w-full max-w-4xl aspect-video rounded-lg shadow-2xl bg-black border-none" 
-            allow="autoplay" 
-            allowfullscreen>
+            class="absolute inset-0 w-full h-full border-none" 
+            allow="autoplay; fullscreen" 
+            allowfullscreen="true"
+            webkitallowfullscreen="true"
+            mozallowfullscreen="true">
           </iframe>
-        `;
-      }
+        </div>
+      `;
     } else {
       // 針對一般外部影片（例如 .mp4 直接網址）
       contentBox.innerHTML = `
