@@ -267,7 +267,7 @@ function updateStats() {
   const favStat = document.getElementById('stat-favorites');
   
   if (totalStat) totalStat.innerHTML = `${travelData.length} <span class="text-sm text-stone-400">個回憶</span>`;
-  if (favStat) favStat.innerHTML = `${favorites.length} <span class="text-sm text-stone-400">個最愛1</span>`;
+  if (favStat) favStat.innerHTML = `${favorites.length} <span class="text-sm text-stone-400">個最愛2</span>`;
 
   const totalBtn = totalStat?.parentElement;
   const favBtn = favStat?.parentElement;
