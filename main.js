@@ -230,13 +230,13 @@ function renderGallery() {
       
       <!-- 下方文字與收藏區 -->
        <div class="p-5 flex justify-between items-center bg-white border-t border-stone-50">
-        <h3 class="text-sm font-light text-stone-800 tracking-wide truncate pr-4" title="${item.title}">
-          ${item.title} <br>
-            <span class="text-xs text-stone-500">
+        <h3 class="text-sm font-bold text-black pr-4" title="${item.title}">
+           📍 ${item.title}
+            <br>
+            <span class="text-xs font-semibold text-stone-600">
                 ${item.description || ""}
             </span>
-        </h3>
-       
+        </h3>       
         <button onclick="toggleFavorite(${item.id})" class="text-stone-300 hover:text-red-400 transition-colors duration-300 p-1 focus:outline-none">
           <i class="${isFav ? 'fa-solid fa-heart text-red-500' : 'fa-regular fa-heart'} text-lg"></i>
         </button>
