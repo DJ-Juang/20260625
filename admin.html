@@ -148,33 +148,44 @@ let nextId = null;
 
 function calculateNextId(){
 
-    const text =
-        document.getElementById("dataSource").value;
+    try{
 
-    const data =
-        JSON.parse(text);
+        const text =
+            document.getElementById("dataSource").value;
+
+        const data =
+            JSON.parse(text);
+
+        if(!Array.isArray(data) || data.length === 0){
+
+            alert("JSON資料為空");
+
+            return;
+        }
+
         const ids =
-        data.map(item => item.id);
+            data
+            .map(item => item.id)
+            .filter(id => typeof id === "number");
+
         const maxId =
-        Math.max(...ids);
+            Math.max(...ids);
 
-    if(matches.length === 0){
+        nextId = maxId + 1;
 
-        alert("找不到任何 ID");
+        document.getElementById("nextId").innerText =
+            nextId;
 
-        return;
     }
+    catch(error){
 
-    const ids =
-        matches.map(m => parseInt(m[1]));
+        alert(
+            "JSON格式錯誤\\n\\n" +
+            error.message
+        );
 
-    const maxId =
-        Math.max(...ids);
-
-    nextId = maxId + 1;
-
-    document.getElementById("nextId").innerText =
-        nextId;
+        console.error(error);
+    }
 }
 
 function generateData(){
