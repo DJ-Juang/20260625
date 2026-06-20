@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>旅遊資料管理</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+body{
+    background:#f8f8f8;
+}
+textarea{
+    font-family:monospace;
+}
+</style>
+
+</head>
+
+<body class="p-6 max-w-3xl mx-auto">
+
+<h1 class="text-2xl font-bold mb-6">
+旅遊資料管理工具
+</h1>
+
+<div class="bg-white p-6 rounded shadow space-y-4">
+
+<div>
+<label class="block mb-1">景點名稱</label>
+<input id="title" class="w-full border p-2 rounded">
+</div>
+
+<div>
+<label class="block mb-1">Google Drive 連結</label>
+<input id="url" class="w-full border p-2 rounded">
+</div>
+
+<div>
+<label class="block mb-1">分類</label>
+<input id="category" class="w-full border p-2 rounded" placeholder="瑞士、義大利、日本">
+</div>
+
+<div>
+<label class="block mb-1">說明（可空白）</label>
+<textarea id="description" rows="3" class="w-full border p-2 rounded"></textarea>
+</div>
+
+<div>
+<label class="block mb-1">類型</label>
+
+<select id="type" class="w-full border p-2 rounded">
+<option value="image">圖片</option>
+<option value="video">影片</option>
+</select>
+</div>
+
+<div class="flex gap-3">
+
+<button
+onclick="generateData()"
+class="bg-blue-600 text-white px-4 py-2 rounded">
+產生資料 </button>
+
+<button
+onclick="copyData()"
+class="bg-green-600 text-white px-4 py-2 rounded">
+複製 </button>
+
+</div>
+
+<div>
+<label class="block mb-1">產生結果</label>
+
+<textarea
+id="output"
+rows="8"
+class="w-full border p-3 rounded">
+</textarea>
+
+</div>
+
+</div>
+
+<script>
+
+function generateData(){
+
+    const title =
+        document.getElementById("title").value.trim();
+
+    const url =
+        document.getElementById("url").value.trim();
+
+    const category =
+        document.getElementById("category").value.trim();
+
+    const description =
+        document.getElementById("description").value.trim();
+
+    const type =
+        document.getElementById("type").value;
+
+    let result;
+
+    if(description){
+
+        result =
+`{
+  id: ???,
+  title: "${title}",
+  type: "${type}",
+  url: "${url}",
+  category: "${category}",
+  description: "${description}"
+},`;
+
+    }else{
+
+        result =
+`{
+  id: ???,
+  title: "${title}",
+  type: "${type}",
+  url: "${url}",
+  category: "${category}"
+},`;
+
+    }
+
+    document.getElementById("output").value = result;
+}
+
+function copyData(){
+
+    const text =
+        document.getElementById("output");
+
+    text.select();
+
+    document.execCommand("copy");
+
+    alert("已複製");
+}
+
+</script>
+
+</body>
+</html>
