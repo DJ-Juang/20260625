@@ -2,17 +2,43 @@ const ITEMS_PER_PAGE = 9;
 let currentPage = 1;
 let filterMode = 'all'; // 'all'（全部）或 'favorites'（僅收藏）
 let favorites = JSON.parse(localStorage.getItem('travel_favorites')) || [];
+let travelData = [];
 
 // 網頁載入完成後初始化
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+
+  await loadTravelData();
+
   initCarousel();
-  setupFilterTabs(); // 初始化篩選標籤互動
+  setupFilterTabs();
   renderGallery();
   renderPagination();
   updateStats();
   setupModal();
-  setupLightbox(); // 啟用燈箱初始化
+  setupLightbox();
 });
+
+async function loadTravelData(){
+
+  try{
+
+    const response =
+      await fetch("travel-data.json");
+
+    travelData =
+      await response.json();
+
+  }
+  catch(error){
+
+    console.error(
+      "載入資料失敗",
+      error
+    );
+
+    travelData = [];
+  }
+}
 
 // 💡 輔助函式：自動解析 Google Drive 網址中的檔案 ID
 function getGoogleDriveId(url) {
