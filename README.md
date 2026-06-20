@@ -12,3 +12,4 @@ Google Drive -> 管理頁(admin.html) -> travel-data.json -> GitHub Actions -> G
 ----------------------------
 如果影片是：MP4, MOV
 直接嵌入網站有時會遇到：流量限制, 播放限制, 行動裝置相容性
+
