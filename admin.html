@@ -110,7 +110,13 @@ onclick="generateData()"
 class="bg-green-600 text-white px-4 py-2 rounded">
 產生資料
 </button>
-
+    
+<button
+onclick="appendData()"
+class="bg-purple-600 text-white px-4 py-2 rounded">
+加入資料並產生完整檔案
+</button>
+    
 <button
 onclick="copyData()"
 class="bg-orange-600 text-white px-4 py-2 rounded">
@@ -226,6 +232,98 @@ function copyData(){
     alert("已複製到剪貼簿");
 }
 
+function appendData(){
+
+    if(nextId === null){
+
+        alert("請先計算下一個 ID");
+        return;
+    }
+
+    const source =
+        document.getElementById("dataSource").value;
+
+    const title =
+        document.getElementById("title").value.trim();
+
+    const url =
+        document.getElementById("url").value.trim();
+
+    const category =
+        document.getElementById("category").value.trim();
+
+    const description =
+        document.getElementById("description").value.trim();
+
+    const type =
+        document.getElementById("type").value;
+
+    let newItem;
+
+    if(description){
+
+        newItem =
+`{id: ${nextId},title: "${title}", type: "${type}", url: "${url}", category: "${category}", description: "${description}"}`;
+
+    }else{
+
+        newItem =
+`{id: ${nextId},title: "${title}", type: "${type}", url: "${url}", category: "${category}"}`;
+
+    }
+
+    const startMarker =
+        "const travelData = [";
+
+    const endMarker =
+        "];";
+
+    const startPos =
+        source.indexOf(startMarker);
+
+    const endPos =
+        source.lastIndexOf(endMarker);
+
+    if(startPos === -1 || endPos === -1){
+
+        alert("找不到 travelData 結構");
+
+        return;
+    }
+
+    let content =
+        source.substring(
+            startPos + startMarker.length,
+            endPos
+        ).trim();
+
+    if(content.length > 0){
+
+        if(!content.trim().endsWith(",")){
+
+            content += ",";
+        }
+
+        content += "\n" + newItem;
+
+    }else{
+
+        content = newItem;
+    }
+
+    const result =
+`${startMarker}
+${content}
+${endMarker}`;
+
+    document.getElementById("output").value =
+        result;
+
+    nextId++;
+
+    document.getElementById("nextId").innerText =
+        nextId;
+}
 </script>
 
 </body>
