@@ -9,7 +9,17 @@ https://drive.google.com/file/d/xxxxx/view : 適合人工瀏覽 (「分享連結
 https://drive.google.com/uc?export=view&id=xxxxx : 適合網站直接顯示圖片
 -------------最終建議---------------
 Google Drive -> 管理頁(admin.html) -> travel-data.json -> GitHub Actions -> GitHub Pages
+--------- admin.html 操作過程 -----------
+1. 打開 admin.html
+2. 將目前 italy-data.js 全部內容貼到：「目前 italy-data.js 內容」
+3. 按：【計算下一個 ID】
+4. 顯示：下一個 ID：9
+5. 輸入景點資料
+6. 按：【產生資料】
+7. 得到：{id: 9,title: "少女峰",...}
+8. 複製貼到 italy-data.js
 ----------------------------
 如果影片是：MP4, MOV
 直接嵌入網站有時會遇到：流量限制, 播放限制, 行動裝置相容性
+
 
