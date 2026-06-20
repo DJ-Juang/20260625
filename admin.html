@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>旅遊資料管理</title>
+
+<title>旅遊資料管理工具</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 
@@ -16,68 +16,121 @@ textarea{
     font-family:monospace;
 }
 </style>
-
 </head>
 
-<body class="p-6 max-w-3xl mx-auto">
+<body class="max-w-4xl mx-auto p-6">
 
 <h1 class="text-2xl font-bold mb-6">
 旅遊資料管理工具
 </h1>
 
-<div class="bg-white p-6 rounded shadow space-y-4">
+<!-- 計算 ID -->
+
+<div class="bg-white rounded shadow p-6 mb-6">
+
+<h2 class="font-bold mb-3">
+步驟 1：貼上 italy-data.js
+</h2>
+
+<textarea
+id="dataSource"
+rows="10"
+class="w-full border rounded p-3"
+placeholder="請貼上整個 italy-data.js">
+</textarea>
+
+<div class="mt-4 flex gap-3 items-center">
+
+<button
+onclick="calculateNextId()"
+class="bg-blue-600 text-white px-4 py-2 rounded">
+計算下一個 ID
+</button>
+
+<span class="font-bold">
+下一個 ID：
+<span id="nextId">?</span>
+</span>
+
+</div>
+
+</div>
+
+<!-- 新增資料 -->
+
+<div class="bg-white rounded shadow p-6">
+
+<h2 class="font-bold mb-4">
+步驟 2：新增景點
+</h2>
+
+<div class="space-y-4">
 
 <div>
 <label class="block mb-1">景點名稱</label>
-<input id="title" class="w-full border p-2 rounded">
+<input id="title" class="w-full border rounded p-2">
 </div>
 
 <div>
 <label class="block mb-1">Google Drive 連結</label>
-<input id="url" class="w-full border p-2 rounded">
+<input id="url" class="w-full border rounded p-2">
 </div>
 
 <div>
 <label class="block mb-1">分類</label>
-<input id="category" class="w-full border p-2 rounded" placeholder="瑞士、義大利、日本">
+<input id="category" class="w-full border rounded p-2">
 </div>
 
 <div>
 <label class="block mb-1">說明（可空白）</label>
-<textarea id="description" rows="3" class="w-full border p-2 rounded"></textarea>
+<textarea
+id="description"
+rows="3"
+class="w-full border rounded p-2"></textarea>
 </div>
 
 <div>
 <label class="block mb-1">類型</label>
 
-<select id="type" class="w-full border p-2 rounded">
+<select
+id="type"
+class="w-full border rounded p-2">
+
 <option value="image">圖片</option>
 <option value="video">影片</option>
+
 </select>
+
 </div>
 
 <div class="flex gap-3">
 
 <button
 onclick="generateData()"
-class="bg-blue-600 text-white px-4 py-2 rounded">
-產生資料 </button>
+class="bg-green-600 text-white px-4 py-2 rounded">
+產生資料
+</button>
 
 <button
 onclick="copyData()"
-class="bg-green-600 text-white px-4 py-2 rounded">
-複製 </button>
+class="bg-orange-600 text-white px-4 py-2 rounded">
+複製
+</button>
 
 </div>
 
 <div>
-<label class="block mb-1">產生結果</label>
+
+<label class="block mb-1">
+產生結果
+</label>
 
 <textarea
 id="output"
 rows="8"
-class="w-full border p-3 rounded">
-</textarea>
+class="w-full border rounded p-3"></textarea>
+
+</div>
 
 </div>
 
@@ -85,7 +138,43 @@ class="w-full border p-3 rounded">
 
 <script>
 
+let nextId = null;
+
+function calculateNextId(){
+
+    const text =
+        document.getElementById("dataSource").value;
+
+    const matches =
+        [...text.matchAll(/id\s*:\s*(\d+)/g)];
+
+    if(matches.length === 0){
+
+        alert("找不到任何 ID");
+
+        return;
+    }
+
+    const ids =
+        matches.map(m => parseInt(m[1]));
+
+    const maxId =
+        Math.max(...ids);
+
+    nextId = maxId + 1;
+
+    document.getElementById("nextId").innerText =
+        nextId;
+}
+
 function generateData(){
+
+    if(nextId === null){
+
+        alert("請先計算下一個 ID");
+
+        return;
+    }
 
     const title =
         document.getElementById("title").value.trim();
@@ -107,41 +196,34 @@ function generateData(){
     if(description){
 
         result =
-`{
-  id: ???,
-  title: "${title}",
-  type: "${type}",
-  url: "${url}",
-  category: "${category}",
-  description: "${description}"
-},`;
+`{id: ${nextId},title: "${title}", type: "${type}", url: "${url}", category: "${category}", description: "${description}"},`;
 
     }else{
 
         result =
-`{
-  id: ???,
-  title: "${title}",
-  type: "${type}",
-  url: "${url}",
-  category: "${category}"
-},`;
+`{id: ${nextId},title: "${title}", type: "${type}", url: "${url}", category: "${category}"},`;
 
     }
 
-    document.getElementById("output").value = result;
+    document.getElementById("output").value =
+        result;
+
+    nextId++;
+
+    document.getElementById("nextId").innerText =
+        nextId;
 }
 
 function copyData(){
 
-    const text =
+    const output =
         document.getElementById("output");
 
-    text.select();
+    output.select();
 
     document.execCommand("copy");
 
-    alert("已複製");
+    alert("已複製到剪貼簿");
 }
 
 </script>
