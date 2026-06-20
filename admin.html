@@ -156,17 +156,8 @@ function calculateNextId(){
         const data =
             JSON.parse(text);
 
-        if(!Array.isArray(data) || data.length === 0){
-
-            alert("JSON資料為空");
-
-            return;
-        }
-
         const ids =
-            data
-            .map(item => item.id)
-            .filter(id => typeof id === "number");
+            data.map(item => item.id);
 
         const maxId =
             Math.max(...ids);
@@ -180,7 +171,7 @@ function calculateNextId(){
     catch(error){
 
         alert(
-            "JSON格式錯誤\\n\\n" +
+            "JSON格式錯誤\n\n" +
             error.message
         );
 
@@ -255,89 +246,68 @@ function appendData(){
         return;
     }
 
-    const source =
-        document.getElementById("dataSource").value;
+    try{
 
-    const title =
-        document.getElementById("title").value.trim();
+        const source =
+            document.getElementById("dataSource").value;
 
-    const url =
-        document.getElementById("url").value.trim();
+        const data =
+            JSON.parse(source);
 
-    const category =
-        document.getElementById("category").value.trim();
+        const title =
+            document.getElementById("title").value.trim();
 
-    const description =
-        document.getElementById("description").value.trim();
+        const url =
+            document.getElementById("url").value.trim();
 
-    const type =
-        document.getElementById("type").value;
+        const category =
+            document.getElementById("category").value.trim();
 
-    let newItem;
+        const description =
+            document.getElementById("description").value.trim();
 
-    if(description){
+        const type =
+            document.getElementById("type").value;
 
-        newItem =
-`{"id": ${nextId},"title": "${title}", "type": "${type}", "url": "${url}", "category": "${category}", "description": "${description}"}`;
+        const newItem = {
+            id: nextId,
+            title: title,
+            type: type,
+            url: url,
+            category: category
+        };
 
-    }else{
-
-        newItem =
-`{"id": ${nextId},"title": "${title}", "type": "${type}", "url": "${url}", "category": "${category}"}`;
-
-    }
-
-    const startMarker =
-        "const travelData = [";
-
-    const endMarker =
-        "];";
-
-    const startPos =
-        source.indexOf(startMarker);
-
-    const endPos =
-        source.lastIndexOf(endMarker);
-
-    if(startPos === -1 || endPos === -1){
-
-        alert("找不到 travelData 結構");
-
-        return;
-    }
-
-    let content =
-        source.substring(
-            startPos + startMarker.length,
-            endPos
-        ).trim();
-
-    if(content.length > 0){
-
-        if(!content.trim().endsWith(",")){
-
-            content += ",";
+        if(description){
+            newItem.description = description;
         }
 
-        content += "\n" + newItem;
+        data.push(newItem);
 
-    }else{
+        const result =
+            JSON.stringify(data, null, 2);
 
-        content = newItem;
+        document.getElementById("output").value =
+            result;
+
+        // 讓下一筆新增時不用重新貼資料
+        document.getElementById("dataSource").value =
+            result;
+
+        nextId++;
+
+        document.getElementById("nextId").innerText =
+            nextId;
+
     }
+    catch(error){
 
-    const result =
-`${startMarker}
-${content}
-${endMarker}`;
+        alert(
+            "JSON格式錯誤\n\n" +
+            error.message
+        );
 
-    document.getElementById("output").value =
-        result;
-
-    nextId++;
-
-    document.getElementById("nextId").innerText =
-        nextId;
+        console.error(error);
+    }
 }
 </script>
 
