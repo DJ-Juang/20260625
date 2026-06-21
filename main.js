@@ -3,6 +3,7 @@ let currentPage = 1;
 let filterMode = 'all'; // 'all'（全部）或 'favorites'（僅收藏）
 let favorites = JSON.parse(localStorage.getItem('travel_favorites')) || [];
 let travelData = [];
+let searchKeyword = '';
 
 // 網頁載入完成後初始化
 document.addEventListener("DOMContentLoaded", async () => {
@@ -11,6 +12,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   initCarousel();
   setupFilterTabs();
+  setupSearch();
   renderGallery();
   renderPagination();
   updateStats();
@@ -71,9 +73,31 @@ function getMediaThumbnail(item) {
 
 // 取得當前篩選模式下的資料列表
 function getFilteredData() {
-  return filterMode === 'all' 
-    ? travelData 
-    : travelData.filter(item => favorites.includes(item.id));
+  let data =
+    filterMode === 'all'
+      ? travelData
+      : travelData.filter(item =>
+          favorites.includes(item.id)
+        );
+  // 搜尋條件
+  if (searchKeyword.trim() !== '') {
+    const keyword =
+      searchKeyword.toLowerCase();
+    data = data.filter(item => {
+      const title =
+        (item.title || '').toLowerCase();
+      const category =
+        (item.category || '').toLowerCase();
+      const description =
+        (item.description || '').toLowerCase();
+      return (
+        title.includes(keyword) ||
+        category.includes(keyword) ||
+        description.includes(keyword)
+      );
+    });
+  }
+  return data;
 }
 
 // 1. 頂部無縫滾動 Banner (已修正：同時支援 Google Drive 影片與一般外部影片)
@@ -142,6 +166,21 @@ function setupFilterTabs() {
       }
     });
   }
+}
+
+function setupSearch() {
+  const searchInput =
+    document.getElementById('searchInput');
+
+  if (!searchInput) return;
+
+  searchInput.addEventListener('input', function () {
+    searchKeyword = this.value;
+    currentPage = 1;
+    renderGallery();
+    renderPagination();
+    updateStats();
+  });
 }
 
 // 2. 渲染 3x3 照片卡片網格 (已修正：一般外部影片使用 <video> 原生播放，Drive 影片則使用輕量縮圖)
