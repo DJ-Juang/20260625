@@ -435,6 +435,7 @@ window.openLightbox = function(id) {
     : item.url;
 
   // 在標題下方動態注入下載按鈕
+/* jdj
   let downloadBtn = document.getElementById('lightbox-download');
   if (!downloadBtn) {
     downloadBtn = document.createElement('a');
@@ -446,7 +447,7 @@ window.openLightbox = function(id) {
   downloadBtn.target = "_blank";
   downloadBtn.setAttribute('download', `${item.title}`); 
   downloadBtn.innerHTML = `<i class="fa-solid fa-arrow-down-to-bracket text-[10px]"></i> 下載此${item.type === 'video' ? '影片' : '照片'}`;
-
+*/
   // 立即顯示燈箱
   lightbox.classList.remove('hidden');
   document.body.classList.add('overflow-hidden-lightbox');
