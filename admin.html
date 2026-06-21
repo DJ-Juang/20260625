@@ -108,19 +108,25 @@ class="w-full border rounded p-2">
 <button
 onclick="generateData()"
 class="bg-green-600 text-white px-4 py-2 rounded">
-產生資料
+產生一筆資料
 </button>
     
 <button
 onclick="appendData()"
 class="bg-purple-600 text-white px-4 py-2 rounded">
-加入資料並產生完整檔案
+Append一筆
 </button>
     
 <button
 onclick="copyData()"
 class="bg-orange-600 text-white px-4 py-2 rounded">
 複製
+</button>
+
+<button
+onclick="downloadJson()"
+class="bg-blue-600 text-white px-4 py-2 rounded">
+下載json檔
 </button>
 
 </div>
@@ -292,23 +298,50 @@ function appendData(){
         // 讓下一筆新增時不用重新貼資料
         document.getElementById("dataSource").value =
             result;
-
         nextId++;
-
         document.getElementById("nextId").innerText =
             nextId;
-
     }
     catch(error){
-
         alert(
             "JSON格式錯誤\n\n" +
             error.message
         );
-
         console.error(error);
     }
 }
+
+function downloadJson(){
+    const jsonContent =
+        document.getElementById("output").value;
+    if(!jsonContent.trim()){
+        alert("沒有可下載的資料");
+        return;
+    }
+    try{
+
+        JSON.parse(jsonContent);
+    }catch(error){
+        alert("JSON格式錯誤，無法下載");
+        return;
+    }
+    const blob =
+        new Blob(
+            [jsonContent],
+            { type: "application/json" }
+        );
+    const url =
+        URL.createObjectURL(blob);
+    const a =
+        document.createElement("a");
+    a.href = url;
+    a.download = "travel-data.json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
 </script>
 
 </body>
