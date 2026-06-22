@@ -13,9 +13,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   initCarousel();
   setupFilterTabs();
   setupSearch();
+
   renderGallery();
   renderPagination();
   updateStats();
+  updateSearchResultInfo();
+
   setupModal();
   setupLightbox();
 });
@@ -100,6 +103,21 @@ function getFilteredData() {
   return data;
 }
 
+function updateSearchResultInfo() {
+  const info =
+    document.getElementById('searchResultInfo');
+  if (!info) return;
+  const count =
+    getFilteredData().length;
+  if (searchKeyword.trim() === '') {
+    info.innerHTML =
+      `共 ${count} 筆資料`;
+  } else {
+    info.innerHTML =
+      `🔍 「${searchKeyword}」 找到 ${count} 筆資料`;
+  }
+}
+
 // 1. 頂部無縫滾動 Banner (已修正：同時支援 Google Drive 影片與一般外部影片)
 function initCarousel() {
   const track = document.getElementById('carousel-track');
@@ -153,6 +171,7 @@ function setupFilterTabs() {
         renderGallery();
         renderPagination();
         updateStats();
+        updateSearchResultInfo();
       }
     });
 
@@ -163,6 +182,7 @@ function setupFilterTabs() {
         renderGallery();
         renderPagination();
         updateStats();
+        updateSearchResultInfo();
       }
     });
   }
@@ -180,6 +200,7 @@ function setupSearch() {
     renderGallery();
     renderPagination();
     updateStats();
+    updateSearchResultInfo();
   });
 }
 
@@ -269,15 +290,18 @@ function renderGallery() {
       
       <!-- 下方文字與收藏區 -->
        <div class="p-5 flex justify-between items-center bg-white border-t border-stone-50">
+       ${(item.title || item.description) ? `
         <h3 class="text-sm font-bold text-black pr-4" title="${item.title || ''}">
             ${item.title ? `📍 ${item.title}` : ""}
             ${item.description ? `
-            <br>
+             <br>
             <span class="text-xs font-semibold text-stone-600">
             ⭐ ${item.description}
             </span>
             ` : ""}
         </h3>
+       ` : ""}   
+    
         <button onclick="toggleFavorite(${item.id})" class="text-stone-300 hover:text-red-400 transition-colors duration-300 p-1 focus:outline-none">
           <i class="${isFav ? 'fa-solid fa-heart text-red-500' : 'fa-regular fa-heart'} text-lg"></i>
         </button>
