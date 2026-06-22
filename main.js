@@ -296,7 +296,7 @@ function renderGallery() {
             ${item.description ? `
              <br>
             <span class="text-xs font-semibold text-stone-600">
-            ⭐ ${item.description}
+            🎯 ${item.description}
             </span>
             ` : ""}
         </h3>
