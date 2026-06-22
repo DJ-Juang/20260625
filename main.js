@@ -76,28 +76,54 @@ function getMediaThumbnail(item) {
 
 // 取得當前篩選模式下的資料列表
 function getFilteredData() {
+
   let data =
     filterMode === 'all'
       ? travelData
       : travelData.filter(item =>
           favorites.includes(item.id)
         );
+
   // 搜尋條件
   if (searchKeyword.trim() !== '') {
-    const keyword =
-      searchKeyword.toLowerCase();
+
+    const query =
+      searchKeyword.toLowerCase().trim();
+
     data = data.filter(item => {
-      const title =
-        (item.title || '').toLowerCase();
-      const category =
-        (item.category || '').toLowerCase();
-      const description =
-        (item.description || '').toLowerCase();
-      return (
-        title.includes(keyword) ||
-        category.includes(keyword) ||
-        description.includes(keyword)
-      );
+
+      const text =
+        [
+          item.title || '',
+          item.category || '',
+          item.description || ''
+        ]
+        .join(' ')
+        .toLowerCase();
+
+      // AND 搜尋
+      if (query.includes(' and ')) {
+
+        const keywords =
+          query.split(/\s+and\s+/i);
+
+        return keywords.every(keyword =>
+          text.includes(keyword.trim())
+        );
+      }
+
+      // OR 搜尋
+      if (query.includes(' or ')) {
+
+        const keywords =
+          query.split(/\s+or\s+/i);
+
+        return keywords.some(keyword =>
+          text.includes(keyword.trim())
+        );
+      }
+      // 一般搜尋
+      return text.includes(query);
     });
   }
   return data;
