@@ -301,6 +301,9 @@ function appendData(){
         nextId++;
         document.getElementById("nextId").innerText =
             nextId;
+        // 清空 URL
+        document.getElementById("url").value = "";
+        alert("Append Done!!");
     }
     catch(error){
         alert(
