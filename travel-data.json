@@ -59,5 +59,13 @@
     "url": "https://drive.google.com/file/d/10iLjuEqmriPu7RbZzz9EnPZ0Yh-NzWHE/view?usp=drivesdk",
     "category": "瑞士",
     "description": "聖萊奧德伽爾教堂"
+  },
+  {
+    "id": 9,
+    "title": "盧森",
+    "type": "image",
+    "url": "https://drive.google.com/file/d/1TSqrOxzZbm0ZCCnDKfjedHnsRxB3qW7v/view?usp=drivesdk",
+    "category": "瑞士",
+    "description": "卡貝爾橋"
   }
 ]
