@@ -20,5 +20,13 @@
     "url": "https://drive.google.com/file/d/12kSbnMRtefmH7ohiMyPIZpUp9f95TT5h/view?usp=drivesdk",
     "category": "瑞士",
     "description": "前往義大利"
+  },
+  {
+    "id": 4,
+    "title": "飛機",
+    "type": "image",
+    "url": "https://drive.google.com/file/d/1ZKODAbv5bm27NlZw4Im7fyBKpXO3D6j3/view?usp=drivesdk",
+    "category": "瑞士",
+    "description": "日出"
   }
 ]
