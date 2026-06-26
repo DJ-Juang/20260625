@@ -67,5 +67,13 @@
     "url": "https://drive.google.com/file/d/1TSqrOxzZbm0ZCCnDKfjedHnsRxB3qW7v/view?usp=drivesdk",
     "category": "瑞士",
     "description": "卡貝爾橋"
+  },
+  {
+    "id": 10,
+    "title": "盧森",
+    "type": "image",
+    "url": "https://drive.google.com/file/d/1MhTMuaqHH8DQVEav0CIjml--qIqgnGDJ/view?usp=drivesdk",
+    "category": "瑞士",
+    "description": "卡貝爾橋"
   }
 ]
