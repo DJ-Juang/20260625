@@ -35,5 +35,13 @@
     "type": "image",
     "url": "https://drive.google.com/file/d/1RPxwOLQakzv7XlPagw1WrBGDsYLQVuwZ/view?usp=drivesdk",
     "category": "瑞士"
+  },
+  {
+    "id": 6,
+    "title": "盧森湖",
+    "type": "image",
+    "url": "https://drive.google.com/file/d/1bOzfQsUk-6EAGtbnBpOa375WyOmytyiN/view?usp=drivesdk",
+    "category": "瑞士",
+    "description": "遠眺湖景"
   }
 ]
