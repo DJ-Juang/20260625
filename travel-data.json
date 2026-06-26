@@ -12,5 +12,13 @@
     "type": "image",
     "url": "https://drive.google.com/file/d/1TAVAQIct8AmdVN8NfadLmzyWl5A1bOpH/view?usp=drive_link",
     "category": "義瑞行程"
+  },
+  {
+    "id": 3,
+    "title": "飛機上",
+    "type": "image",
+    "url": "https://drive.google.com/file/d/12kSbnMRtefmH7ohiMyPIZpUp9f95TT5h/view?usp=drivesdk",
+    "category": "瑞士",
+    "description": "前往義大利"
   }
 ]
