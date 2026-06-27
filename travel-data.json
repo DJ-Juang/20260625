@@ -74,5 +74,37 @@
     "type": "image",
     "url": "https://drive.google.com/file/d/1MhTMuaqHH8DQVEav0CIjml--qIqgnGDJ/view?usp=drivesdk",
     "category": "瑞士"
+  },
+  {
+    "id": 11,
+    "title": "Rigi",
+    "type": "image",
+    "url": "https://drive.google.com/file/d/1nR-MpDNbpD5PgvrfCUfZ4gDAOGefogTw/view?usp=drivesdk",
+    "category": "瑞士",
+    "description": "瑞吉山"
+  },
+  {
+    "id": 12,
+    "title": "Rigi",
+    "type": "image",
+    "url": "https://drive.google.com/file/d/1x_ctbWbIjDcQq9iW00Tjf_2hXXO7zSuV/view?usp=drivesdk",
+    "category": "瑞士",
+    "description": "瑞吉山"
+  },
+  {
+    "id": 13,
+    "title": "Rigi",
+    "type": "image",
+    "url": "https://drive.google.com/file/d/11haYKurOy2N1WusFdgPjyw3DNPPwtula/view?usp=drivesdk",
+    "category": "瑞士",
+    "description": "瑞吉山"
+  },
+  {
+    "id": 14,
+    "title": "Rigi",
+    "type": "image",
+    "url": "https://drive.google.com/file/d/1Z3qJNkqTTA4Ois5ZrQEAWCtYAmJ2PRV8/view?usp=drivesdk",
+    "category": "瑞士",
+    "description": "我是子毅"
   }
 ]
