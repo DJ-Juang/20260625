@@ -114,5 +114,12 @@
     "url": "https://drive.google.com/file/d/1iY-Wq1VkBrDH7Wfdedd2p6V7CUgj-KbZ/view?usp=drivesdk",
     "category": "瑞士",
     "description": "前往瑞吉山"
+  },
+  {
+    "id": 16,
+    "title": "Rigi",
+    "type": "image",
+    "url": "https://drive.google.com/file/d/1nkqpXSMZiug7xAVBeIRB4LqhVsAYLDPK/view?usp=drivesdk",
+    "category": "瑞士"
   }
 ]
