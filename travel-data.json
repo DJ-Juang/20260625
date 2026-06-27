@@ -128,5 +128,13 @@
     "type": "image",
     "url": "https://drive.google.com/file/d/1xRLQjn1dm4ClHS-3AeoNHfODrGUrUrIB/view?usp=drivesdk",
     "category": "瑞士"
+  },
+  {
+    "id": 18,
+    "title": "Rigi",
+    "type": "video",
+    "url": "https://drive.google.com/file/d/14A9Qte6XAdFUlD7bD3yuRnJM1pWkWx1M/view?usp=drivesdk",
+    "category": "瑞士",
+    "description": "盧森湖"
   }
 ]
