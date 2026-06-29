@@ -300,5 +300,21 @@
     "url": "https://drive.google.com/file/d/1bMUCQ9bqo109ph2ksCbQ3T68nxmWeYGW/view?usp=drivesdk",
     "category": "義大利",
     "description": "艾曼紐二世迴廊"
+  },
+  {
+    "id": 40,
+    "title": "米蘭",
+    "type": "image",
+    "url": "https://drive.google.com/file/d/1uKO3M-mNpxbv_O4RyTTwwMnJnwuQhhdm/view?usp=drivesdk",
+    "category": "義大利",
+    "description": "杜林（公牛）轉三圈得好運"
+  },
+  {
+    "id": 41,
+    "title": "米蘭",
+    "type": "image",
+    "url": "https://drive.google.com/file/d/1Wtqi-MenKdRIt5zwmxAvNXx9Xwh1KbLE/view?usp=drivesdk",
+    "category": "義大利",
+    "description": "轉三圈"
   }
 ]
