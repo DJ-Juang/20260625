@@ -197,5 +197,21 @@
     "url": "https://drive.google.com/file/d/1sKv_mkffVYvxUuNNFUY2hR7kN_PcAlDt/view?usp=drivesdk",
     "category": "義大利",
     "description": "哥德式建築"
+  },
+  {
+    "id": 27,
+    "title": "佛羅倫斯",
+    "type": "image",
+    "url": "https://drive.google.com/file/d/1hRfiG9pU5J21KA-nwEQ3y2G_Dho40MKj/view?usp=drivesdk",
+    "category": "義大利",
+    "description": "聖母百花大教堂"
+  },
+  {
+    "id": 28,
+    "title": "佛羅倫斯",
+    "type": "image",
+    "url": "https://drive.google.com/file/d/1QMvWKo9NIIegM-603OREJRDjQlHHf8zC/view?usp=drivesdk",
+    "category": "義大利",
+    "description": "喬托鐘樓 聖母百花大教堂"
   }
 ]
