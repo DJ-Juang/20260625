@@ -213,5 +213,21 @@
     "url": "https://drive.google.com/file/d/1QMvWKo9NIIegM-603OREJRDjQlHHf8zC/view?usp=drivesdk",
     "category": "義大利",
     "description": "喬托鐘樓 聖母百花大教堂"
+  },
+  {
+    "id": 29,
+    "title": "佛羅倫斯",
+    "type": "image",
+    "url": "https://drive.google.com/file/d/15jCeNzSRpwhRNNKuPQO1C_kzJqD_FEJ3/view?usp=drivesdk",
+    "category": "義大利",
+    "description": "聖母百花大教堂"
+  },
+  {
+    "id": 30,
+    "title": "佛羅倫斯",
+    "type": "image",
+    "url": "",
+    "category": "義大利",
+    "description": "天堂之門"
   }
 ]
