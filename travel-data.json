@@ -229,5 +229,21 @@
     "url": "",
     "category": "義大利",
     "description": "天堂之門"
+  },
+  {
+    "id": 31,
+    "title": "佛羅倫斯",
+    "type": "image",
+    "url": "https://drive.google.com/file/d/1ZNRHI-bQ49MA2Fu7rtpae5cPnKua9ZZc/view?usp=drivesdk",
+    "category": "義大利",
+    "description": "聖母百花大教堂"
+  },
+  {
+    "id": 32,
+    "title": "佛羅倫斯",
+    "type": "image",
+    "url": "https://drive.google.com/file/d/1Y7ypmXPmjgEw6z1kFDO5CHyZfgvOYb_l/view?usp=drivesdk",
+    "category": "義大利",
+    "description": "老橋"
   }
 ]
