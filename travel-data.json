@@ -348,5 +348,21 @@
     "url": "https://drive.google.com/file/d/1kgfIULOJTYeQAAMybijDTlwtkzDL3aQY/view?usp=drivesdk",
     "category": "義大利",
     "description": "四河噴泉廣場"
+  },
+  {
+    "id": 46,
+    "title": "羅馬",
+    "type": "image",
+    "url": "https://drive.google.com/file/d/1d47D92uQXsl99B8N2AkDCREkxZGyOMrF/view?usp=drivesdk",
+    "category": "義大利",
+    "description": "羅馬競技場"
+  },
+  {
+    "id": 47,
+    "title": "羅馬",
+    "type": "image",
+    "url": "https://drive.google.com/file/d/1Zta9NTbPN49Wge0q3ItQUO1fQkF8LAHb/view?usp=drivesdk",
+    "category": "義大利",
+    "description": "羅馬競技場"
   }
 ]
