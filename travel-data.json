@@ -521,5 +521,13 @@
     "type": "image",
     "url": "https://drive.google.com/file/d/1YLk-ad4jKphJmGSraiRYgQJ0sr73K_KS/view?usp=drivesdk",
     "category": "梵蒂岡"
+  },
+  {
+    "id": 68,
+    "title": "羅馬",
+    "type": "image",
+    "url": "https://drive.google.com/file/d/192-Le5z4ZicpD265Z5ETZNrqogPrIHR3/view?usp=drivesdk",
+    "category": "義大利",
+    "description": "納沃納廣場：海神噴泉(另廣場中央有四河噴泉)"
   }
 ]
