@@ -69,7 +69,7 @@ function isGoogleDriveMedia(url) {
 function getMediaThumbnail(item) {
   const driveId = getGoogleDriveId(item.url);
   if (driveId) {
-    return `https://drive.google.com/thumbnail?sz=w1200&id=${driveId}`;
+    return `https://drive.google.com/thumbnail?sz=w400&id=${driveId}`;
   }
   return item.url;
 }
@@ -149,37 +149,33 @@ function initCarousel() {
   const track = document.getElementById('carousel-track');
   if (!track) return;
 
-  const carouselItems = [...travelData, ...travelData, ...travelData];
+  // 1. 隨機選取 30 張照片 (若資料不足30張則全部取)
+  const shuffled = [...travelData].sort(() => 0.5 - Math.random());
+  const selectedItems = shuffled.slice(0, 30);
+  
+  // 2. 為了達成無限滾動效果，我們只需要複製這 30 張即可 (總共 60 張節點)
+  const carouselItems = [...selectedItems, ...selectedItems];
   
   track.innerHTML = carouselItems.map(item => {
+    // ... 原本的渲染邏輯保持不變 ...
     const isDrive = isGoogleDriveMedia(item.url);
+    const thumbnailUrl = getMediaThumbnail(item);
     
-    // 如果是一般外部影片，則使用 <video> 標籤自動播放；其餘使用 <img> 標籤
-    if (item.type === 'video' && !isDrive) {
-      return `
-        <div class="w-48 h-32 mx-2 flex-shrink-0 overflow-hidden rounded shadow-sm border border-stone-800 bg-stone-900 relative group">
-          <video src="${item.url}" class="w-full h-full object-cover opacity-75 hover:opacity-100 transition-opacity duration-300" autoplay muted loop playsinline></video>
-          <div class="absolute inset-0 flex items-center justify-center bg-black/30 text-white pointer-events-none">
-            <i class="fa-solid fa-play text-xs opacity-70"></i>
-          </div>
-        </div>
-      `;
-    } else {
-      const thumbnailUrl = getMediaThumbnail(item);
-      return `
-        <div class="w-48 h-32 mx-2 flex-shrink-0 overflow-hidden rounded shadow-sm border border-stone-800 bg-stone-900 relative group">
-          <img src="${thumbnailUrl}" alt="${item.title}" class="w-full h-full object-cover opacity-75 hover:opacity-100 transition-opacity duration-300">
-          ${item.type === 'video' 
-            ? `<div class="absolute inset-0 flex items-center justify-center bg-black/30 text-white pointer-events-none">
-                <i class="fa-solid fa-play text-xs opacity-70"></i>
-               </div>`
-            : ''
-          }
-        </div>
-      `;
-    }
+    // 這裡建議簡化，避免動態生成過多 video 標籤影響效能，優先展示圖片縮圖
+    return `
+      <div class="w-48 h-32 mx-2 flex-shrink-0 overflow-hidden rounded shadow-sm border border-stone-800 bg-stone-900 relative group">
+        <img src="${thumbnailUrl}" alt="${item.title}" class="w-full h-full object-cover opacity-75 hover:opacity-100 transition-opacity duration-300">
+        ${item.type === 'video' 
+          ? `<div class="absolute inset-0 flex items-center justify-center bg-black/30 text-white pointer-events-none">
+              <i class="fa-solid fa-play text-xs opacity-70"></i>
+             </div>`
+          : ''
+        }
+      </div>
+    `;
   }).join('');
 }
+
 
 // 初始化篩選標籤的點擊事件與手勢樣式
 function setupFilterTabs() {
